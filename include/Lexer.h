@@ -12,38 +12,45 @@
 namespace kcalc 
 {
 
-class Lexer 
+class TokenIterator 
   : public ::boost::iterator_adaptor<
-        Lexer, const char *, Token,
+        TokenIterator, const char *, Token,
         boost::forward_traversal_tag,
         Token >
 {
 public:
-  Lexer()
-    : Lexer::iterator_adaptor_{nullptr},
-    m_pos{}
+  TokenIterator()
+    : TokenIterator::iterator_adaptor_{nullptr},
+    m_pos{}, m_invalid{true}
   { }
   
-  Lexer(
+  TokenIterator(
       const char * input) :
-      Lexer::iterator_adaptor_{input}, m_pos{}
+      TokenIterator::iterator_adaptor_{input}, m_pos{},
+    m_invalid{input == nullptr || *input == 0}
   { }
 
-  Lexer(const Lexer& other)
-    : Lexer::iterator_adaptor_{other.base()} 
+  TokenIterator(const TokenIterator& other)
+    : TokenIterator::iterator_adaptor_{other.base()},
+    m_pos{0, 0}, m_invalid{other.m_invalid}
   { }
 
+private:
   struct CurrentToken
   {
     TokenKind      kind;
     unsigned int   length;
     SourcePosition after;
-  };    
-
-private:
+  }; 
   friend class boost::iterator_core_access;
   Token dereference() const; 
   void increment();
+  bool equal(const TokenIterator& other) const
+  { 
+    return (m_invalid && other.m_invalid) ||
+      (!m_invalid && !other.m_invalid && 
+         base() == other.base());
+  }
 
   std::optional<CurrentToken>& current() const;
 
@@ -60,7 +67,28 @@ private:
 
   SourcePosition m_pos;
   mutable std::optional<CurrentToken> m_current;
+  bool m_invalid;
 }; 
+
+class Lexer 
+{
+public:
+  Lexer(const char * input) 
+    : m_input(input)
+  { }
+
+  Lexer(const Lexer&) = delete;
+  Lexer& operator=(const Lexer&) = delete;
+
+  TokenIterator begin() 
+  { return TokenIterator(m_input); }
+
+  TokenIterator end() 
+  { return TokenIterator(); }
+
+private:
+  const char * const m_input;
+};
 
 } /* namespace kcalc */
 

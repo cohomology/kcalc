@@ -5,24 +5,25 @@
 namespace kcalc
 {
 
-Token Lexer::dereference() const
+Token TokenIterator::dereference() const
 {
   Token token(TokenKind::EndOfInput, m_pos, base(), 0);
-  if (base() != nullptr && *base() != 0)
+  if (!m_invalid)
   {
     auto current = this->current();
     if (current)
-    {
       token = Token(current->kind, m_pos,
           this->base_reference(), current->length);
-    }
+    else
+      token = Token(TokenKind::Unknown, m_pos,
+          this->base_reference(), 1);
   }
   return token;
 }  
 
-void Lexer::increment() 
+void TokenIterator::increment() 
 {
-  if (base() != nullptr || *base() != 0)
+  if (!m_invalid)
   {
     auto current = this->current();
     if (current)
@@ -30,11 +31,16 @@ void Lexer::increment()
       m_pos = current->after;
       base_reference() += current->length;
       m_current.reset();
+      if (*base() == 0) 
+        m_invalid = true;
     }
+    else
+      m_invalid = true;
   }
 }
 
-std::optional<Lexer::CurrentToken>& Lexer::current() const
+std::optional<TokenIterator::CurrentToken>& 
+TokenIterator::current() const
 {
   if (!m_current)
   {
@@ -71,7 +77,8 @@ std::optional<Lexer::CurrentToken>& Lexer::current() const
   return m_current;
 }
 
-std::optional<Lexer::CurrentToken> Lexer::universalMatch(
+std::optional<TokenIterator::CurrentToken> 
+TokenIterator::universalMatch(
   TokenKind tokenKind,
   SourcePosition current,
   std::function<bool(char)> matchFirst,
@@ -98,7 +105,8 @@ std::optional<Lexer::CurrentToken> Lexer::universalMatch(
   return token;
 }
 
-std::optional<Lexer::CurrentToken> Lexer::matchNumberNoDecimal(
+std::optional<TokenIterator::CurrentToken> 
+TokenIterator::matchNumberNoDecimal(
     SourcePosition start) const
 {
   auto matchDigit = [](char c) { return isdigit(c); };
@@ -106,7 +114,8 @@ std::optional<Lexer::CurrentToken> Lexer::matchNumberNoDecimal(
       matchDigit);
 }
 
-std::optional<Lexer::CurrentToken> Lexer::matchNumber() const
+std::optional<TokenIterator::CurrentToken> 
+TokenIterator::matchNumber() const
 {
   auto token = matchNumberNoDecimal(m_pos);
   if (token)
@@ -129,7 +138,8 @@ std::optional<Lexer::CurrentToken> Lexer::matchNumber() const
   return token;
 }
 
-std::optional<Lexer::CurrentToken> Lexer::matchIdentifier() const 
+std::optional<TokenIterator::CurrentToken> 
+TokenIterator::matchIdentifier() const 
 {
   auto matchAlpha = [](char c) { return isalpha(c); }; 
   auto matchAlphaNum = [](char c) { return isalnum(c); };
@@ -137,7 +147,8 @@ std::optional<Lexer::CurrentToken> Lexer::matchIdentifier() const
       matchAlpha, matchAlphaNum); 
 }
 
-std::optional<Lexer::CurrentToken> Lexer::matchWhitespace() const
+std::optional<TokenIterator::CurrentToken> 
+TokenIterator::matchWhitespace() const
 {
   auto matchSpace = [](char c) { return isspace(c); }; 
   return universalMatch(TokenKind::Whitespace, m_pos, 

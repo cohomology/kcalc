@@ -2,6 +2,7 @@
 #define KCALC_TOKEN_H  
 
 #include <string_view>
+#include <ostream>
 
 namespace kcalc
 {
@@ -13,6 +14,9 @@ enum class TokenKind : unsigned short
 #include "TokenKind.h"
 #undef DEFINE_TOKENKIND
 };
+
+std::ostream& operator<<(std::ostream& out, 
+    TokenKind kind);
 
 class SourcePosition
 {
@@ -36,6 +40,13 @@ public:
 
   SourcePosition operator+(unsigned int offset) const
   { return SourcePosition(m_line, m_offset + offset); } 
+  
+  friend std::ostream& operator<<(std::ostream& out, 
+                                  const SourcePosition& pos)
+  { 
+    out << "(" << pos.m_line << ", " << pos.m_offset << ")"; 
+    return out;
+  }
 
 private:
   unsigned short m_line;
@@ -73,6 +84,14 @@ public:
 
   const std::string_view& text() const
   { return m_text; }
+
+  friend std::ostream& operator<<(std::ostream& out, 
+                                  const Token& token)
+  { 
+    out << "(" << token.m_kind << ", " << token.m_pos << ", " 
+        << token.m_text;
+    return out;
+  } 
 
 private:
   TokenKind        m_kind;
