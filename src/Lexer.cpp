@@ -51,6 +51,7 @@ TokenIterator::current() const
       {                                                 \
         m_current = CurrentToken { TokenKind::kind, 1,  \
           m_pos + 1 };                                  \
+        break;                                          \
       }
 #define DEFINE_TOKENKIND_MANUAL(kind)
 #define DEFINE_TOKENKIND_COMPLEX(kind,fn)        
@@ -82,10 +83,11 @@ TokenIterator::universalMatch(
   TokenKind tokenKind,
   SourcePosition current,
   std::function<bool(char)> matchFirst,
-  std::function<bool(char)> matchFurther) const
+  std::function<bool(char)> matchFurther,
+  const char * base) const
 {
   std::optional<CurrentToken> token;
-  const char * it = base();
+  const char * it = base != nullptr ? base : this->base();
   if (it != nullptr && 
       *it != 0 &&
       matchFirst(*it))
@@ -95,7 +97,14 @@ TokenIterator::universalMatch(
     while (*(++it) != 0 &&
            matchFurther(*it))
     {
-      if (*it == '\n') 
+      if (*it == '\r' &&
+          *(it + 1) == '\n')
+      { 
+        ++it;
+        ++token->length;
+        token->after.nextLine();
+      }
+      else if (*it == '\n') 
         token->after.nextLine();
       else if (*it != '\r')
         ++token->after; 
@@ -107,27 +116,31 @@ TokenIterator::universalMatch(
 
 std::optional<TokenIterator::CurrentToken> 
 TokenIterator::matchNumberNoDecimal(
-    SourcePosition start) const
+    SourcePosition start,
+    const char * base) const
 {
   auto matchDigit = [](char c) { return isdigit(c); };
   return universalMatch(TokenKind::Number, start, matchDigit, 
-      matchDigit);
+      matchDigit, base);
 }
 
 std::optional<TokenIterator::CurrentToken> 
 TokenIterator::matchNumber() const
 {
   auto token = matchNumberNoDecimal(m_pos);
-  if (token)
+  if (token && *(base()+token->length) != 0)
   {
     auto decimal = 
       universalMatch(TokenKind::Number, token->after, 
                      [](char c) { return c == '.'; },
-                     [](char) { return false; });
+                     [](char) { return false; },
+                     base() + token->length);
     if (decimal)
     {
-      auto afterDecimal =
-        matchNumberNoDecimal(decimal->after); 
+      auto afterDecimal = *(base() + token->length + 1) != 0 ?
+        matchNumberNoDecimal(decimal->after, 
+            base() + token->length + 1) : 
+        std::optional<TokenIterator::CurrentToken>(); 
       token = CurrentToken { TokenKind::Number,
         token->length + 1 + 
           (afterDecimal ? afterDecimal->length : 0),
@@ -141,8 +154,8 @@ TokenIterator::matchNumber() const
 std::optional<TokenIterator::CurrentToken> 
 TokenIterator::matchIdentifier() const 
 {
-  auto matchAlpha = [](char c) { return isalpha(c); }; 
-  auto matchAlphaNum = [](char c) { return isalnum(c); };
+  auto matchAlpha = [](char c) { return isalpha(c) || c == '_'; }; 
+  auto matchAlphaNum = [](char c) { return isalnum(c) || c == '_'; };
   return universalMatch(TokenKind::Identifier, m_pos,
       matchAlpha, matchAlphaNum); 
 }

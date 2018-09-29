@@ -48,6 +48,12 @@ public:
     return out;
   }
 
+  bool operator==(const SourcePosition& other) const 
+  { 
+    return m_line == other.m_line &&
+        m_offset == other.m_offset; 
+  }
+
 private:
   unsigned short m_line;
   unsigned short m_offset;
@@ -89,9 +95,16 @@ public:
                                   const Token& token)
   { 
     out << "(" << token.m_kind << ", " << token.m_pos << ", " 
-        << token.m_text;
+        << token.m_text << ")";
     return out;
   } 
+
+  bool operator==(const Token& other) const
+  { 
+    return m_kind == other.m_kind &&
+      m_pos == other.m_pos &&
+      m_text == other.m_text;
+  }
 
 private:
   TokenKind        m_kind;

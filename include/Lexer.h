@@ -58,9 +58,11 @@ private:
       TokenKind tokenKind,
       SourcePosition current,
       std::function<bool(char)> matchFirst,
-      std::function<bool(char)> matchFurther) const; 
+      std::function<bool(char)> matchFurther,
+      const char * base = nullptr) const; 
   std::optional<CurrentToken> matchNumberNoDecimal(
-    SourcePosition start) const; 
+    SourcePosition start,
+    const char * base = nullptr) const; 
   std::optional<CurrentToken> matchNumber() const; 
   std::optional<CurrentToken> matchIdentifier() const; 
   std::optional<CurrentToken> matchWhitespace() const;  
