@@ -1,19 +1,9 @@
 enum class TokenKind : unsigned short
 {
-  Unknown      = 0u,
-  Identifier   = 1u,
-  Equals       = 2u,
-  Plus         = 3u,
-  Minus        = 4u,
-  Asterisk     = 5u,
-  Slash        = 6u,
-  Number       = 7u,
-  LeftParen    = 8u,
-  RightParen   = 9u,
-  LeftBracket  = 10u,
-  RightBracket = 11u,
-
-  EndOfInput   = 99u
+#define DEFINE_TOKENKIND(a,b) \
+  a,
+#include "TokenKind.h"
+#undef DEFINE_TOKENKIND
 };
 
 class SourcePosition

@@ -1,62 +1,18 @@
-enum class TokenKind : unsigned short
-{
-#define TOKEN_KIND
-};
+#ifdef DEFINE_TOKENKIND
 
-class SourcePosition
-{
-public:
-  constexpr SourcePosition(unsigned short line = 0,
-                           unsigned short offset = 0)
-    : m_line{ line }, m_offset{ offset }
-  { }
+DEFINE_TOKENKIND(Unknown, NULL)
+DEFINE_TOKENKIND(Identifier, NULL)
+DEFINE_TOKENKIND(Equals, "=")
+DEFINE_TOKENKIND(Plus, "+")
+DEFINE_TOKENKIND(Minus, "-")
+DEFINE_TOKENKIND(Asterisk, "*")
+DEFINE_TOKENKIND(Slash, "/")
+DEFINE_TOKENKIND(Number, NULL)
+DEFINE_TOKENKIND(LeftParen, "(")
+DEFINE_TOKENKIND(RightParen, ")")
+DEFINE_TOKENKIND(LeftBracket, "{")
+DEFINE_TOKENKIND(RightBracket, "}")
+DEFINE_TOKENKIND(Comma, ",")
+DEFINE_TOKENKIND(EndOfInput, NULL) // must be last element
 
-  constexpr unsigned short line() const
-  { return m_line; }
-
-  constexpr unsigned short offset() const
-  { return m_offset; }
-
-private:
-  unsigned short m_line;
-  unsigned short m_offset;
-};
-
-class Token
-{
-public:
-  Token(const TokenKind kind, 
-        const SourcePosition& pos)
-    : m_kind{kind}, m_pos{pos}, m_text()
-  { }  
-  template<typename InputIterator>
-  Token(const TokenKind kind, 
-        const SourcePosition& pos,
-        InputIterator first,
-        InputIterator last)
-    : m_kind{kind}, m_pos{pos}, m_text{first, last}
-  { }
-
-  Token(Token&& original)
-    : m_kind { original.m_kind },
-      m_pos { original.m_pos },
-      m_text { std::move(original.m_text) }
-  { }
-
-  Token(const Token&) = delete;
-  Token& operator=(const Token&) = delete;
-
-  TokenKind kind() const  
-  { return m_kind; }
-
-  const SourcePosition& position() const 
-  { return m_pos; }
-
-  const std::string& text() const
-  { return m_text; }
-
-private:
-  const TokenKind      m_kind;
-  const SourcePosition m_pos;
-  const std::string    m_text;
-};  
+#endif
