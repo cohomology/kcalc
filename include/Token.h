@@ -1,3 +1,9 @@
+#ifndef KCALC_TOKEN_H
+#define KCALC_TOKEN_H  
+
+namespace kcalc
+{
+
 enum class TokenKind : unsigned short
 {
 #define DEFINE_TOKENKIND(a,b) \
@@ -63,3 +69,7 @@ private:
   const SourcePosition m_pos;
   const std::string    m_text;
 };  
+
+} /* namespace kcalc */
+
+#endif // KCALC_TOKEN_H
