@@ -29,13 +29,10 @@ public:
   { return m_offset; }
 
   constexpr void nextLine() 
-  { ++m_line; }
+  { ++m_line; m_offset = 0; }
 
   void operator++()
   { ++m_offset; }
-
-  void advance(unsigned int index)
-  { m_offset += index; }
 
 private:
   unsigned short m_line;

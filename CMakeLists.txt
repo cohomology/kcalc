@@ -1,8 +1,13 @@
 cmake_minimum_required (VERSION 3.10)
-set(THREADS_PREFER_PTHREAD_FLAG ON)
-find_package(Threads required)
+set (THREADS_PREFER_PTHREAD_FLAG ON)
+set (CMAKE_CXX_STANDARD 17)
+set (CMAKE_CXX_STANDARD_REQUIRED ON) 
+set (CMAKE_CXX_EXTENSIONS OFF)   
+project (kcalc CXX) 
 
-project (kcalc)
+find_package(Threads REQUIRED)
+enable_testing()
+
 add_subdirectory (src)
 add_subdirectory (tests)
 

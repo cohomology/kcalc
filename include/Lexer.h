@@ -1,8 +1,10 @@
 #ifndef KCALC_LEXER_H
 #define KCALC_LEXER_H 
-#include <memory> 
 
 #include "Token.h"
+
+#include <memory>  
+#include <functional>
 
 namespace kcalc 
 {
@@ -19,9 +21,17 @@ public:
   std::unique_ptr<Token> next();
 private:
 
+  void universalMatch(
+    std::function<bool(char)> matchFirst,
+    std::function<bool(char)> matchFurther);
+  std::unique_ptr<Token> universalMatchReturn(
+    TokenKind tokenKind, 
+    std::function<bool(char)> matchFirst,
+    std::function<bool(char)> matchFurther); 
   std::unique_ptr<Token> matchNumber();
   std::unique_ptr<Token> matchIdentifier();
   std::unique_ptr<Token> matchWhitespace(); 
+  void matchNumberNoDecimal();
 
   const char *   m_input;
   unsigned int   m_length;
