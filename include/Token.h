@@ -34,6 +34,9 @@ public:
   void operator++()
   { ++m_offset; }
 
+  SourcePosition operator+(unsigned int offset) const
+  { return SourcePosition(m_line, m_offset + offset); } 
+
 private:
   unsigned short m_line;
   unsigned short m_offset;
@@ -59,8 +62,8 @@ public:
       m_text { std::move(original.m_text) }
   { }
 
-  Token(const Token&) = delete;
-  Token& operator=(const Token&) = delete;
+  Token(const Token&) = default;
+  Token& operator=(const Token&) = default;
 
   TokenKind kind() const  
   { return m_kind; }
@@ -72,9 +75,9 @@ public:
   { return m_text; }
 
 private:
-  const TokenKind        m_kind;
-  const SourcePosition   m_pos;
-  const std::string_view m_text;
+  TokenKind        m_kind;
+  SourcePosition   m_pos;
+  std::string_view m_text;
 };  
 
 } /* namespace kcalc */

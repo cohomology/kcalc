@@ -5,38 +5,61 @@
 
 #include <memory>  
 #include <functional>
+#include <string>
+
+#include <boost/iterator/iterator_adaptor.hpp>
 
 namespace kcalc 
 {
 
-class Lexer
+class Lexer 
+  : public ::boost::iterator_adaptor<
+        Lexer, const char *, Token,
+        boost::forward_traversal_tag,
+        Token >
 {
 public:
-  constexpr Lexer(const char * input,
-                  unsigned int length)
-    : m_input{input}, m_length{length}, 
-    m_pos{}, m_index{0}
+  Lexer()
+    : Lexer::iterator_adaptor_{nullptr},
+    m_pos{}
+  { }
+  
+  Lexer(
+      const char * input) :
+      Lexer::iterator_adaptor_{input}, m_pos{}
   { }
 
-  std::unique_ptr<Token> next();
+  Lexer(const Lexer& other)
+    : Lexer::iterator_adaptor_{other.base()} 
+  { }
+
+  struct CurrentToken
+  {
+    TokenKind      kind;
+    unsigned int   length;
+    SourcePosition after;
+  };    
+
 private:
+  friend class boost::iterator_core_access;
+  Token dereference() const; 
+  void increment();
 
-  void universalMatch(
-    std::function<bool(char)> matchFirst,
-    std::function<bool(char)> matchFurther);
-  std::unique_ptr<Token> universalMatchReturn(
-    TokenKind tokenKind, 
-    std::function<bool(char)> matchFirst,
-    std::function<bool(char)> matchFurther); 
-  std::unique_ptr<Token> matchNumber();
-  std::unique_ptr<Token> matchIdentifier();
-  std::unique_ptr<Token> matchWhitespace(); 
-  void matchNumberNoDecimal();
+  std::optional<CurrentToken>& current() const;
 
-  const char *   m_input;
-  unsigned int   m_length;
+  std::optional<CurrentToken> universalMatch(
+      TokenKind tokenKind,
+      SourcePosition current,
+      std::function<bool(char)> matchFirst,
+      std::function<bool(char)> matchFurther) const; 
+  std::optional<CurrentToken> matchNumberNoDecimal(
+    SourcePosition start) const; 
+  std::optional<CurrentToken> matchNumber() const; 
+  std::optional<CurrentToken> matchIdentifier() const; 
+  std::optional<CurrentToken> matchWhitespace() const;  
+
   SourcePosition m_pos;
-  unsigned int   m_index;
+  mutable std::optional<CurrentToken> m_current;
 }; 
 
 } /* namespace kcalc */

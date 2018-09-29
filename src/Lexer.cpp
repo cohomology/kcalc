@@ -5,117 +5,142 @@
 namespace kcalc
 {
 
-std::unique_ptr<Token> Lexer::next()
+Token Lexer::dereference() const
 {
-  if (m_index >= m_length)
-    return std::make_unique<Token>(
-        TokenKind::EndOfInput, m_pos);
-  switch(m_input[m_index])
+  Token token(TokenKind::EndOfInput, m_pos, base(), 0);
+  if (base() != nullptr && *base() != 0)
   {
-#define DEFINE_TOKENKIND_SIMPLE(kind,chr)  \
-    case chr:                              \
-    {                                      \
-      std::unique_ptr<Token> token =       \
-          std::make_unique<Token>(         \
-              TokenKind::kind, m_pos,      \
-              m_input+m_index, 1);         \
-      ++m_index;                           \
-      ++m_pos;                             \
-      break;                               \
+    auto current = this->current();
+    if (current)
+    {
+      token = Token(current->kind, m_pos,
+          this->base_reference(), current->length);
     }
+  }
+  return token;
+}  
+
+void Lexer::increment() 
+{
+  if (base() != nullptr || *base() != 0)
+  {
+    auto current = this->current();
+    if (current)
+    {
+      m_pos = current->after;
+      base_reference() += current->length;
+      m_current.reset();
+    }
+  }
+}
+
+std::optional<Lexer::CurrentToken>& Lexer::current() const
+{
+  if (!m_current)
+  {
+    switch(*base())
+    {
+#define DEFINE_TOKENKIND_SIMPLE(kind,chr)               \
+      case chr:                                         \
+      {                                                 \
+        m_current = CurrentToken { TokenKind::kind, 1,  \
+          m_pos + 1 };                                  \
+      }
 #define DEFINE_TOKENKIND_MANUAL(kind)
 #define DEFINE_TOKENKIND_COMPLEX(kind,fn)        
 #include "TokenKind.h"
 #undef DEFINE_TOKENKIND_SIMPLE
 #undef DEFINE_TOKENKIND_MANUAL
 #undef DEFINE_TOKENKIND_COMPLEX
-    default:
-    {
-      std::unique_ptr<Token> token; 
+      default:
+      {
 #define DEFINE_TOKENKIND_SIMPLE(kind,chr)
 #define DEFINE_TOKENKIND_MANUAL(kind)
-#define DEFINE_TOKENKIND_COMPLEX(kind,fn) \
-      token = fn();                       \
-      if (token)                          \
-        return token;                     
+#define DEFINE_TOKENKIND_COMPLEX(kind,fn)   \
+        m_current = fn();                   \
+        if (m_current)                      \
+          break;
 #include "TokenKind.h"
 #undef DEFINE_TOKENKIND_SIMPLE
 #undef DEFINE_TOKENKIND_MANUAL
 #undef DEFINE_TOKENKIND_COMPLEX 
-      break;
-    }
+        break;
+      }
+    }  
   }
-  return std::make_unique<Token>(
-      TokenKind::Unknown, m_pos); 
-}  
+  return m_current;
+}
 
-void Lexer::universalMatch(
+std::optional<Lexer::CurrentToken> Lexer::universalMatch(
+  TokenKind tokenKind,
+  SourcePosition current,
   std::function<bool(char)> matchFirst,
-  std::function<bool(char)> matchFurther)
+  std::function<bool(char)> matchFurther) const
 {
-  if (m_index < m_length && 
-      matchFirst(m_input[m_index]))
+  std::optional<CurrentToken> token;
+  const char * it = base();
+  if (it != nullptr && 
+      *it != 0 &&
+      matchFirst(*it))
   {
-    while (++m_index < m_length && 
-           matchFurther(m_input[m_index]))
+    token = CurrentToken { tokenKind, 1, 
+      current + 1 };
+    while (*(++it) != 0 &&
+           matchFurther(*it))
     {
-      if (m_input[m_index] == '\n') 
-        m_pos.nextLine();  
-      else
-        ++m_pos; 
+      if (*it == '\n') 
+        token->after.nextLine();
+      else if (*it != '\r')
+        ++token->after; 
+      ++token->length;
     }
   }  
+  return token;
 }
 
-std::unique_ptr<Token> Lexer::universalMatchReturn(
-  TokenKind tokenKind,
-  std::function<bool(char)> matchFirst,
-  std::function<bool(char)> matchFurther)
-{
-  std::unique_ptr<Token> token;
-  unsigned int startIdx = m_index;   
-  universalMatch(matchFirst, matchFurther);
-  return startIdx < m_index ? 
-    std::make_unique<Token>(tokenKind,
-          m_pos, m_input+startIdx, (m_index - startIdx)) :
-    nullptr;
-} 
-
-void Lexer::matchNumberNoDecimal()
+std::optional<Lexer::CurrentToken> Lexer::matchNumberNoDecimal(
+    SourcePosition start) const
 {
   auto matchDigit = [](char c) { return isdigit(c); };
-  universalMatch(matchDigit, matchDigit);
+  return universalMatch(TokenKind::Number, start, matchDigit, 
+      matchDigit);
 }
 
-std::unique_ptr<Token> Lexer::matchNumber()
+std::optional<Lexer::CurrentToken> Lexer::matchNumber() const
 {
-  std::unique_ptr<Token> token;  
-  unsigned int startIdx = m_index;  
-  matchNumberNoDecimal();
-  if (startIdx < m_index)
+  auto token = matchNumberNoDecimal(m_pos);
+  if (token)
   {
-    universalMatch([](char c) { return c == '.'; },
-                   [](char) { return false; });
-    matchNumberNoDecimal();
-    token =
-      std::make_unique<Token>(TokenKind::Number,
-          m_pos, m_input+startIdx, (m_index - startIdx)); 
+    auto decimal = 
+      universalMatch(TokenKind::Number, token->after, 
+                     [](char c) { return c == '.'; },
+                     [](char) { return false; });
+    if (decimal)
+    {
+      auto afterDecimal =
+        matchNumberNoDecimal(decimal->after); 
+      token = CurrentToken { TokenKind::Number,
+        token->length + 1 + 
+          (afterDecimal ? afterDecimal->length : 0),
+        afterDecimal ? afterDecimal->after :
+          decimal->after };
+    }
   }
   return token;
 }
 
-std::unique_ptr<Token> Lexer::matchIdentifier() 
+std::optional<Lexer::CurrentToken> Lexer::matchIdentifier() const 
 {
   auto matchAlpha = [](char c) { return isalpha(c); }; 
   auto matchAlphaNum = [](char c) { return isalnum(c); };
-  return universalMatchReturn(TokenKind::Number, 
+  return universalMatch(TokenKind::Identifier, m_pos,
       matchAlpha, matchAlphaNum); 
 }
 
-std::unique_ptr<Token> Lexer::matchWhitespace() 
+std::optional<Lexer::CurrentToken> Lexer::matchWhitespace() const
 {
   auto matchSpace = [](char c) { return isspace(c); }; 
-  return universalMatchReturn(TokenKind::Whitespace, 
+  return universalMatch(TokenKind::Whitespace, m_pos, 
       matchSpace, matchSpace);  
 } 
 
