@@ -1,5 +1,8 @@
 #include "Lexer.h"
 
+namespace kcalc
+{
+
 std::unique_ptr<Token> Lexer::next()
 {
   if (m_index >= m_length)
@@ -20,5 +23,7 @@ std::unique_ptr<Token> Lexer::next()
     case RightBracket:
   }
 }  
+
+} // namespace kcalc
 
 

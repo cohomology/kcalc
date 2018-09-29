@@ -26,4 +26,4 @@ private:
 
 } /* namespace kcalc */
 
-#endif
+#endif // KCALC_LEXER_H
