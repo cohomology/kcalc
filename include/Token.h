@@ -1,6 +1,8 @@
 #ifndef KCALC_TOKEN_H
 #define KCALC_TOKEN_H  
 
+#include <string_view>
+
 namespace kcalc
 {
 
@@ -32,6 +34,9 @@ public:
   void operator++()
   { ++m_offset; }
 
+  void advance(unsigned int index)
+  { m_offset += index; }
+
 private:
   unsigned short m_line;
   unsigned short m_offset;
@@ -44,12 +49,11 @@ public:
         const SourcePosition& pos)
     : m_kind{kind}, m_pos{pos}, m_text()
   { }  
-  template<typename InputIterator>
   Token(const TokenKind kind, 
         const SourcePosition& pos,
-        InputIterator first,
-        InputIterator last)
-    : m_kind{kind}, m_pos{pos}, m_text{first, last}
+        const char * ptr,
+        unsigned int len)
+    : m_kind{kind}, m_pos{pos}, m_text{ptr, len}
   { }
 
   Token(Token&& original)
@@ -67,13 +71,13 @@ public:
   const SourcePosition& position() const 
   { return m_pos; }
 
-  const std::string& text() const
+  const std::string_view& text() const
   { return m_text; }
 
 private:
-  const TokenKind      m_kind;
-  const SourcePosition m_pos;
-  const std::string    m_text;
+  const TokenKind        m_kind;
+  const SourcePosition   m_pos;
+  const std::string_view m_text;
 };  
 
 } /* namespace kcalc */

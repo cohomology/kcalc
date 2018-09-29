@@ -1,5 +1,7 @@
 #include "Lexer.h"
 
+#include <cctype>
+
 namespace kcalc
 {
 
@@ -15,7 +17,8 @@ std::unique_ptr<Token> Lexer::next()
     {                                      \
       std::unique_ptr<Token> token =       \
           std::make_unique<Token>(         \
-              TokenKind::kind, m_pos);     \
+              TokenKind::kind, m_pos,      \
+              m_input+m_index, 1);         \
       ++m_index;                           \
       ++m_pos;                             \
       break;                               \
@@ -54,8 +57,19 @@ std::unique_ptr<Token> Lexer::matchNumber()
 
 std::unique_ptr<Token> Lexer::matchIdentifier() 
 {
-  return std::make_unique<Token>(
-      TokenKind::Unknown, m_pos);  
+  if (isalpha(m_input[m_index]))
+  {
+    unsigned int startIdx = m_index;
+    while (++m_index < m_length && 
+           isalnum(m_input[m_index]));
+    std::unique_ptr<Token> token =
+      std::make_unique<Token>(TokenKind::Identifier,
+          m_pos, m_input+startIdx, (m_index - startIdx));
+    m_pos.advance(m_index - startIdx);
+    return token;
+  } 
+  else
+    return nullptr;
 }
 
 std::unique_ptr<Token> Lexer::matchWhitespace() 
