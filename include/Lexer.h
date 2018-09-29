@@ -18,6 +18,11 @@ public:
 
   std::unique_ptr<Token> next();
 private:
+
+  std::unique_ptr<Token> matchNumber();
+  std::unique_ptr<Token> matchIdentifier();
+  std::unique_ptr<Token> matchWhitespace(); 
+
   const char *   m_input;
   unsigned int   m_length;
   SourcePosition m_pos;

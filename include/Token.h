@@ -6,7 +6,7 @@ namespace kcalc
 
 enum class TokenKind : unsigned short
 {
-#define DEFINE_TOKENKIND(a,b) \
+#define DEFINE_TOKENKIND(a) \
   a,
 #include "TokenKind.h"
 #undef DEFINE_TOKENKIND
@@ -25,6 +25,12 @@ public:
 
   constexpr unsigned short offset() const
   { return m_offset; }
+
+  constexpr void nextLine() 
+  { ++m_line; }
+
+  void operator++()
+  { ++m_offset; }
 
 private:
   unsigned short m_line;
