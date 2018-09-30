@@ -44,10 +44,9 @@ Number::Number(const std::string_view& text)
     for(int i = 0; i < numberOfDecimals; ++i)
       number.append("0");
   }
-  mpq_t num;
-  mpq_init(num);
-  mpq_set_str(num, number.c_str(), 10);
-  mpq_canonicalize(num);
+  mpq_init(m_number);
+  mpq_set_str(m_number, number.c_str(), 10);
+  mpq_canonicalize(m_number);
 
   if (exponential != text.end())
   {
@@ -64,27 +63,12 @@ Number::Number(const std::string_view& text)
     mpq_t tenPowQ;
     mpq_init(tenPowQ);
     mpq_set_z(tenPowQ, tenPow);
+    mpz_clear(tenPow); 
     if (exp > 0)
-    {
-      mpq_t result;
-      mpq_init(result);
-      mpq_mul(result, num, tenPowQ);
-      mpq_class rc(result);
-      m_number.swap(rc);
-    }
+      mpq_mul(m_number, m_number, tenPowQ);
     else
-    {
-      mpq_t result;
-      mpq_init(result);
-      mpq_div(result, num, tenPowQ);
-      mpq_class rc(result); 
-      m_number.swap(rc);
-    }
-  }
-  else
-  {
-    mpq_class rc(num);  
-    m_number.swap(rc);
+      mpq_div(m_number, m_number, tenPowQ);
+    mpq_clear(tenPowQ);
   }
 }
 

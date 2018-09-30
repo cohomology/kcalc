@@ -3,6 +3,9 @@
 
 #include <gmpxx.h>
 
+#include <memory>
+#include <cassert>
+
 namespace kcalc 
 {
 
@@ -27,9 +30,10 @@ class Expression : public AstObject
 class Assignment : public AstObject
 {
 public:
-  Assignment(Expression& left, 
-      Expression& right)
-    : m_left{left}, m_right{right}
+  Assignment(std::unique_ptr<Expression> left, 
+             std::unique_ptr<Expression> right)
+    : m_left{std::move(left)}, 
+    m_right{std::move(right)}
   { }
 
   ObjectKind kind() const override
@@ -49,20 +53,33 @@ public:
   }
 
   const Expression& left() const
-  { return m_left; }
+  { 
+    assert(m_left);
+    return *m_left.get(); 
+  }
 
   Expression& left() 
-  { return m_left; } 
+  { 
+    assert(m_left);
+    return *m_left.get(); 
+  } 
 
   const Expression& right() const
-  { return m_right; }
+  { 
+    assert(m_right);
+    return *m_right.get(); 
+  
+  }
 
   Expression& right() 
-  { return m_right; }  
+  { 
+    assert(m_right);
+    return *m_right.get(); 
+  }  
 
 private:
-  Expression& m_left;
-  Expression& m_right;
+  std::unique_ptr<Expression> m_left;
+  std::unique_ptr<Expression> m_right;
 }; 
 
 class ArithmeticExpression : public Expression
@@ -77,9 +94,10 @@ public:
   };
 
   ArithmeticExpression(Operation operation,
-      Expression& left, 
-      Expression& right)
-    : m_operation{operation}, m_left{left}, m_right{right}
+      std::unique_ptr<Expression> left, 
+      std::unique_ptr<Expression> right)
+    : m_operation{operation}, m_left{std::move(left)}, 
+    m_right{std::move(right)}
   { }
 
   ObjectKind kind() const override
@@ -100,28 +118,40 @@ public:
   }
 
   const Expression& left() const
-  { return m_left; }
+  { 
+    assert(m_left);
+    return *m_left.get(); 
+  }
 
   Expression& left() 
-  { return m_left; } 
+  { 
+    assert(m_left);
+    return *m_left.get(); 
+  } 
 
   const Expression& right() const
-  { return m_right; }
+  { 
+    assert(m_right);
+    return *m_right.get(); 
+  }
 
   Expression& right() 
-  { return m_right; }  
+  { 
+    assert(m_right);
+    return *m_right.get(); 
+  }  
 
 private:
   Operation   m_operation;
-  Expression& m_left;
-  Expression& m_right;
+  std::unique_ptr<Expression> m_left;
+  std::unique_ptr<Expression> m_right;
 };
 
 class Variable : public Expression
 {
 public:
   Variable(const std::string_view& name)
-    : m_name{name}
+    : m_name{name.begin(), name.end()}
   { }
 
   ObjectKind kind() const override
@@ -143,7 +173,7 @@ public:
   { return m_name; }
 
 private:
-  std::string_view m_name;
+  std::string m_name;
 }; 
 
 class Number : public Expression
@@ -167,10 +197,10 @@ public:
   }
 
   std::string get_string() const
-  { return m_number.get_str(); }
+  { return mpq_class(m_number).get_str(); }
 
 private:
-  mpq_class m_number;
+  mpq_t m_number;
 };
 
 } /* namespace kcalc */
