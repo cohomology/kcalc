@@ -4,7 +4,7 @@
 DEFINE_TOKENKIND_MANUAL(Unknown)
 
 DEFINE_TOKENKIND_COMPLEX(Identifier, "[A-Za-z_][A-Za-z0-9_]*")
-DEFINE_TOKENKIND_COMPLEX(Number, "((0(\\.[0-9]*)?)|(([1-9][0-9]*)(\\.([0-9]*))?))([Ee][+-]?[1-9][0-9]*)?")
+DEFINE_TOKENKIND_COMPLEX(Number, "((0(\\.[0-9]*)?)|(([1-9][0-9]*)(\\.([0-9]*))?))([Ee][+-]?[1-9][0-9]*)?i?")
 DEFINE_TOKENKIND_COMPLEX(Newline, "(\\r\\n)|(\\n)")
 DEFINE_TOKENKIND_COMPLEX(Whitespace, "[\\s]*")  
 
@@ -18,6 +18,7 @@ DEFINE_TOKENKIND_SIMPLE(RightParen, ')')
 DEFINE_TOKENKIND_SIMPLE(LeftBracket, '{')
 DEFINE_TOKENKIND_SIMPLE(RightBracket, '}')
 DEFINE_TOKENKIND_SIMPLE(Comma, ',')
+DEFINE_TOKENKIND_SIMPLE(Power, '^') 
 
 DEFINE_TOKENKIND_MANUAL(EndOfInput) // must be last element
 #else

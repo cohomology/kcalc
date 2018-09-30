@@ -7,6 +7,54 @@
 namespace kcalc
 {
 
+std::string Assignment::to_string() const
+{
+  std::string result;
+  result.append(left().to_string());
+  result.append(" = ");
+  result.append(right().to_string());
+  return result;
+}
+
+std::string ArithmeticExpression::to_string() const 
+{
+  std::string result;
+  bool leftBracket = !left().isAtomicExpression();
+  bool rightBracket = !right().isAtomicExpression();
+  if (leftBracket)
+    result.append(" ( ");
+  result.append(left().to_string());
+  if (leftBracket)
+    result.append(" ) ");
+  switch(m_operation)
+  {
+    case Add:
+      result.append(" + ");
+      break;
+    case Subtract:
+      result.append(" - ");
+      break; 
+    case Multiply:
+      result.append(" * ");
+      break; 
+    case Divide:
+      result.append(" / ");
+      break; 
+    case Power:
+      result.append(" ^ ");
+      break; 
+    default:
+      assert(1 == 0);
+      break;
+  }
+  if (rightBracket)
+    result.append(" ( ");
+  result.append(right().to_string());
+  if (rightBracket)
+    result.append(" ) ");
+  return result; 
+}
+
 static long parseExponent(const std::string_view& view)
 {
   assert(!view.empty());
@@ -23,18 +71,25 @@ static long parseExponent(const std::string_view& view)
 }
 
 Number::Number(const std::string_view& text)
-  : m_number()
+  : m_real(), m_imaginary()
 {
   auto decimalPoint = std::find_if(text.begin(),
       text.end(), [](char c) { return c == '.'; });
   auto exponential = std::find_if(text.begin(),
       text.end(), [](char c) { 
       return c == 'E' || c == 'e'; });
+  auto end = text.end();
+  bool complexI = false;
+  if (text.back() == 'i') 
+  {
+    end = text.begin() + text.size() - 1;
+    complexI = true;
+  }
   std::string number(text.begin(), 
-      decimalPoint != text.end() ? decimalPoint : 
-      ( exponential != text.end() ? exponential :
-        text.end() ));
-  if (decimalPoint != text.end() && 
+      decimalPoint != end ? decimalPoint : 
+      ( exponential != end ? exponential :
+        end ));
+  if (decimalPoint != end && 
       decimalPoint + 1 != exponential)
   {
     number.append(decimalPoint+1, exponential);
@@ -44,17 +99,18 @@ Number::Number(const std::string_view& text)
     for(int i = 0; i < numberOfDecimals; ++i)
       number.append("0");
   }
-  mpq_init(m_number);
-  mpq_set_str(m_number, number.c_str(), 10);
-  mpq_canonicalize(m_number);
+  mpq_t num;
+  mpq_init(num);
+  mpq_set_str(num, number.c_str(), 10);
+  mpq_canonicalize(num);
 
-  if (exponential != text.end())
+  if (exponential != end)
   {
     ++exponential;
-    assert(exponential != text.end());
+    assert(exponential != end);
     long exp = parseExponent(
         std::string_view(exponential, 
-          std::distance(exponential, text.end())));
+          std::distance(exponential, end)));
     unsigned long posExp = std::abs(exp);
     mpz_t tenPow;
     mpz_init(tenPow);
@@ -65,11 +121,33 @@ Number::Number(const std::string_view& text)
     mpq_set_z(tenPowQ, tenPow);
     mpz_clear(tenPow); 
     if (exp > 0)
-      mpq_mul(m_number, m_number, tenPowQ);
+      mpq_mul(num, num, tenPowQ);
     else
-      mpq_div(m_number, m_number, tenPowQ);
+      mpq_div(num, num, tenPowQ);
     mpq_clear(tenPowQ);
   }
+  mpq_class temp(num); 
+  if (complexI)
+    m_imaginary.swap(temp);
+  else
+    m_real.swap(temp);
+  mpq_clear(num);
+}
+
+std::string Number::to_string() const 
+{
+  std::string result;
+  bool printReal = m_real != 0;
+  bool printImaginary = m_imaginary != 0;
+  if (printReal)
+    result.append(m_real.get_str());
+  if (printReal && printImaginary)
+    result.append(" + ");
+  if (printImaginary)
+    result.append(m_imaginary.get_str());
+  if (!printReal && !printImaginary)
+    result.append("0");
+  return result;
 }
 
 } // namespace kcalc 

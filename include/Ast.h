@@ -5,6 +5,7 @@
 
 #include <memory>
 #include <cassert>
+#include <ostream>
 
 namespace kcalc 
 {
@@ -20,8 +21,17 @@ enum class ObjectKind : unsigned short
 class AstObject
 {
 public:
+  virtual bool isAtomicExpression() const
+  { return false; }
+  virtual std::string to_string() const = 0; 
   virtual ObjectKind kind() const = 0;
   virtual bool equals(const AstObject&) const = 0;
+  friend std::ostream& operator<<(std::ostream& out, 
+      const AstObject& object) 
+  {
+    out << object.to_string();
+    return out; 
+  }
 };
 
 class Expression : public AstObject
@@ -51,6 +61,8 @@ public:
     return left().equals(oAss.left()) &&
       right().equals(oAss.right());
   }
+
+  std::string to_string() const override;
 
   const Expression& left() const
   { 
@@ -90,7 +102,8 @@ public:
     Add,
     Subtract,
     Multiply,
-    Divide
+    Divide,
+    Power
   };
 
   ArithmeticExpression(Operation operation,
@@ -102,6 +115,9 @@ public:
 
   ObjectKind kind() const override
   { return ObjectKind::ArithmeticExpression; }
+
+  Operation operation() const
+  { return m_operation; }
   
   bool equals(const AstObject& other) const override
   { 
@@ -116,6 +132,8 @@ public:
       left().equals(oArith.left()) &&
       right().equals(oArith.right());
   }
+
+  std::string to_string() const override; 
 
   const Expression& left() const
   { 
@@ -156,6 +174,12 @@ public:
 
   ObjectKind kind() const override
   { return ObjectKind::Variable; }
+
+  bool isAtomicExpression() const override
+  { return true; }  
+
+  std::string to_string() const override  
+  { return m_name; }
   
   bool equals(const AstObject& other) const override
   { 
@@ -183,6 +207,9 @@ public:
 
   ObjectKind kind() const override
   { return ObjectKind::Number; }
+
+  bool isAtomicExpression() const override
+  { return m_real == 0 || m_imaginary == 0; } 
   
   bool equals(const AstObject& other) const override
   { 
@@ -193,14 +220,15 @@ public:
       return false;
     const Number& num =
       static_cast<const Number&>(other);
-    return m_number == num.m_number;
+    return m_real == num.m_real &&
+      m_imaginary == num.m_imaginary;
   }
 
-  std::string get_string() const
-  { return mpq_class(m_number).get_str(); }
+  std::string to_string() const override;
 
 private:
-  mpq_t m_number;
+  mpq_class m_real;
+  mpq_class m_imaginary;
 };
 
 } /* namespace kcalc */
