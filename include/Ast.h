@@ -189,7 +189,7 @@ public:
     if (this == &other)
       return true;
     else if (other.kind() != 
-        ObjectKind::Variable)
+        ObjectKind::Number)
       return false;
     const Number& num =
       static_cast<const Number&>(other);
