@@ -5,7 +5,7 @@
 TEST(LexerTest, Identifier)
 {
   using namespace kcalc;
-  const char * test = ("i09234_+=1.");
+  const char * test = ("i09234_+=1.+00.01*1  (1e+5){1.2E-5}");
   Lexer lexer(test);
   std::vector<Token> expected = {
     Token(TokenKind::Identifier, SourcePosition(0,0),
@@ -15,7 +15,31 @@ TEST(LexerTest, Identifier)
     Token(TokenKind::Equals, SourcePosition(0,8),
         std::string_view(test+8, 1)),
     Token(TokenKind::Number, SourcePosition(0,9),
-        std::string_view(test+9, 2))
+        std::string_view(test+9, 2)),
+    Token(TokenKind::Plus, SourcePosition(0,11),
+        std::string_view(test+11, 1)),
+    Token(TokenKind::Number, SourcePosition(0,12),
+        std::string_view(test+12, 1)),
+    Token(TokenKind::Number, SourcePosition(0,13),
+        std::string_view(test+13, 4)), 
+    Token(TokenKind::Asterisk, SourcePosition(0,17),
+        std::string_view(test+17, 1)), 
+    Token(TokenKind::Number, SourcePosition(0,18),
+        std::string_view(test+18, 1)),
+    Token(TokenKind::Whitespace, SourcePosition(0,19),
+        std::string_view(test+19, 2)),
+    Token(TokenKind::LeftParen, SourcePosition(0,21),
+        std::string_view(test+21, 1)),    
+    Token(TokenKind::Number, SourcePosition(0,22),
+        std::string_view(test+22, 4)),     
+    Token(TokenKind::RightParen, SourcePosition(0,26),
+        std::string_view(test+26, 1)),      
+    Token(TokenKind::LeftBracket, SourcePosition(0,27),
+        std::string_view(test+27, 1)),       
+    Token(TokenKind::Number, SourcePosition(0,28),
+        std::string_view(test+28, 6)),        
+    Token(TokenKind::RightBracket, SourcePosition(0,34),
+        std::string_view(test+34, 1))        
   }; 
   unsigned int count = 0;
   for (auto it = lexer.begin(); it != lexer.end();
@@ -23,12 +47,13 @@ TEST(LexerTest, Identifier)
   {
     ASSERT_EQ(expected[count], *it);
   }
+  ASSERT_EQ(16, count);
 }
 
 TEST(LexerTest, NewLine)
 {
   using namespace kcalc;
-  const char * test = ("a\r\nTest123");
+  const char * test = ("a\r\nTest\n123");
   Lexer lexer(test);
   TokenIterator it = lexer.begin();
 
@@ -40,7 +65,7 @@ TEST(LexerTest, NewLine)
   ++it;
 
   Token tok2 = *it;
-  EXPECT_EQ(TokenKind::Whitespace, tok2.kind());
+  EXPECT_EQ(TokenKind::Newline, tok2.kind());
   EXPECT_EQ(SourcePosition(0,1), tok2.position());
   EXPECT_EQ("\r\n", tok2.text()); 
 
@@ -49,5 +74,20 @@ TEST(LexerTest, NewLine)
   Token tok3 = *it;
   EXPECT_EQ(TokenKind::Identifier, tok3.kind());
   EXPECT_EQ(SourcePosition(1,0), tok3.position());
-  EXPECT_EQ("Test123", tok3.text());  
+  EXPECT_EQ("Test", tok3.text());  
+
+  ++it;
+
+  Token tok4 = *it;
+  EXPECT_EQ(TokenKind::Newline, tok4.kind());
+  EXPECT_EQ(SourcePosition(1,4), tok4.position());
+  EXPECT_EQ("\n", tok4.text());  
+
+  ++it;
+
+  Token tok5 = *it;
+  EXPECT_EQ(TokenKind::Number, tok5.kind());
+  EXPECT_EQ(SourcePosition(2,0), tok5.position());
+  EXPECT_EQ("123", tok5.text());   
+
 } 
