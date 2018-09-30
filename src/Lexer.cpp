@@ -1,22 +1,23 @@
 #include "Lexer.h"
 
-#include <cctype>
+#include <regex>
+#include <cassert>
 
 namespace kcalc
 {
 
 Token TokenIterator::dereference() const
 {
-  Token token(TokenKind::EndOfInput, m_pos, base(), 0);
+  Token token(TokenKind::EndOfInput, m_pos, std::string_view());
   if (!m_invalid)
   {
     auto current = this->current();
     if (current)
-      token = Token(current->kind, m_pos,
-          this->base_reference(), current->length);
-    else
+      token = Token(current->kind, m_pos, 
+          std::string_view(&*base(), current->length));
+    else if (base() != m_end)
       token = Token(TokenKind::Unknown, m_pos,
-          this->base_reference(), 1);
+          std::string_view(this->base(), 1));
   }
   return token;
 }  
@@ -31,7 +32,7 @@ void TokenIterator::increment()
       m_pos = current->after;
       base_reference() += current->length;
       m_current.reset();
-      if (*base() == 0) 
+      if (base() == m_end) 
         m_invalid = true;
     }
     else
@@ -44,6 +45,7 @@ TokenIterator::current() const
 {
   if (!m_current)
   {
+    assert(base() != m_end);
     switch(*base())
     {
 #define DEFINE_TOKENKIND_SIMPLE(kind,chr)               \
@@ -63,9 +65,9 @@ TokenIterator::current() const
       {
 #define DEFINE_TOKENKIND_SIMPLE(kind,chr)
 #define DEFINE_TOKENKIND_MANUAL(kind)
-#define DEFINE_TOKENKIND_COMPLEX(kind,fn)   \
-        m_current = fn();                   \
-        if (m_current)                      \
+#define DEFINE_TOKENKIND_COMPLEX(kind,rx)             \
+        m_current = matchRegex(TokenKind::kind, rx);  \
+        if (m_current)                                \
           break;
 #include "TokenKind.h"
 #undef DEFINE_TOKENKIND_SIMPLE
@@ -79,95 +81,24 @@ TokenIterator::current() const
 }
 
 std::optional<TokenIterator::CurrentToken> 
-TokenIterator::universalMatch(
-  TokenKind tokenKind,
-  SourcePosition current,
-  std::function<bool(char)> matchFirst,
-  std::function<bool(char)> matchFurther,
-  const char * base) const
+TokenIterator::matchRegex(TokenKind tokenKind,
+    const char * regex) const
 {
-  std::optional<CurrentToken> token;
-  const char * it = base != nullptr ? base : this->base();
-  if (it != nullptr && 
-      *it != 0 &&
-      matchFirst(*it))
-  {
-    token = CurrentToken { tokenKind, 1, 
-      current + 1 };
-    while (*(++it) != 0 &&
-           matchFurther(*it))
-    {
-      if (*it == '\r' &&
-          *(it + 1) == '\n')
-      { 
-        ++it;
-        ++token->length;
-        token->after.nextLine();
-      }
-      else if (*it == '\n') 
-        token->after.nextLine();
-      else if (*it != '\r')
-        ++token->after; 
-      ++token->length;
-    }
-  }  
+  assert(base() != m_end);
+  std::optional<TokenIterator::CurrentToken> token;  
+  std::match_results<std::string_view::const_iterator> match; 
+  if (std::regex_search(base(), m_end, match,  std::regex(regex), 
+      std::regex_constants::match_continuous)) 
+  { 
+    SourcePosition after = m_pos;
+    if (tokenKind == TokenKind::Newline)
+      after.nextLine();
+    else
+      after += match.length(); 
+    token = CurrentToken { tokenKind, match.length(),
+      after };
+  } 
   return token;
 }
-
-std::optional<TokenIterator::CurrentToken> 
-TokenIterator::matchNumberNoDecimal(
-    SourcePosition start,
-    const char * base) const
-{
-  auto matchDigit = [](char c) { return isdigit(c); };
-  return universalMatch(TokenKind::Number, start, matchDigit, 
-      matchDigit, base);
-}
-
-std::optional<TokenIterator::CurrentToken> 
-TokenIterator::matchNumber() const
-{
-  auto token = matchNumberNoDecimal(m_pos);
-  if (token && *(base()+token->length) != 0)
-  {
-    auto decimal = 
-      universalMatch(TokenKind::Number, token->after, 
-                     [](char c) { return c == '.'; },
-                     [](char) { return false; },
-                     base() + token->length);
-    if (decimal)
-    {
-      auto afterDecimal = *(base() + token->length + 1) != 0 ?
-        matchNumberNoDecimal(decimal->after, 
-            base() + token->length + 1) : 
-        std::optional<TokenIterator::CurrentToken>(); 
-      token = CurrentToken { TokenKind::Number,
-        token->length + 1 + 
-          (afterDecimal ? afterDecimal->length : 0),
-        afterDecimal ? afterDecimal->after :
-          decimal->after };
-    }
-  }
-  return token;
-}
-
-std::optional<TokenIterator::CurrentToken> 
-TokenIterator::matchIdentifier() const 
-{
-  auto matchAlpha = [](char c) { return isalpha(c) || c == '_'; }; 
-  auto matchAlphaNum = [](char c) { return isalnum(c) || c == '_'; };
-  return universalMatch(TokenKind::Identifier, m_pos,
-      matchAlpha, matchAlphaNum); 
-}
-
-std::optional<TokenIterator::CurrentToken> 
-TokenIterator::matchWhitespace() const
-{
-  auto matchSpace = [](char c) { return isspace(c); }; 
-  return universalMatch(TokenKind::Whitespace, m_pos, 
-      matchSpace, matchSpace);  
-} 
 
 } // namespace kcalc
-
-

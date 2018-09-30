@@ -3,9 +3,8 @@
 
 #include "Token.h"
 
-#include <memory>  
-#include <functional>
-#include <string>
+#include <string_view>
+#include <optional>
 
 #include <boost/iterator/iterator_adaptor.hpp>
 
@@ -14,32 +13,34 @@ namespace kcalc
 
 class TokenIterator 
   : public ::boost::iterator_adaptor<
-        TokenIterator, const char *, Token,
+        TokenIterator, 
+        std::string_view::const_iterator, Token,
         boost::forward_traversal_tag,
-        Token >
+        Token>
 {
 public:
   TokenIterator()
-    : TokenIterator::iterator_adaptor_{nullptr},
-    m_pos{}, m_invalid{true}
+    : TokenIterator::iterator_adaptor_{},
+    m_end{}, m_pos{}, m_invalid{true}
   { }
   
-  TokenIterator(
-      const char * input) :
-      TokenIterator::iterator_adaptor_{input}, m_pos{},
-    m_invalid{input == nullptr || *input == 0}
+  TokenIterator(const std::string_view& view) :
+    TokenIterator::iterator_adaptor_{view.begin()}, 
+    m_end{view.end()}, m_pos{},
+    m_invalid{view.empty()}
   { }
 
   TokenIterator(const TokenIterator& other)
     : TokenIterator::iterator_adaptor_{other.base()},
-    m_pos{0, 0}, m_invalid{other.m_invalid}
+    m_end{other.m_end}, m_pos{other.m_pos}, 
+    m_invalid{other.m_invalid}
   { }
 
 private:
   struct CurrentToken
   {
-    TokenKind      kind;
-    unsigned int   length;
+    TokenKind kind;
+    long length;
     SourcePosition after;
   }; 
   friend class boost::iterator_core_access;
@@ -49,24 +50,17 @@ private:
   { 
     return (m_invalid && other.m_invalid) ||
       (!m_invalid && !other.m_invalid && 
-         base() == other.base());
+         base() == other.base() && 
+         m_end == other.m_end && 
+         m_pos == other.m_pos);
   }
 
   std::optional<CurrentToken>& current() const;
 
-  std::optional<CurrentToken> universalMatch(
-      TokenKind tokenKind,
-      SourcePosition current,
-      std::function<bool(char)> matchFirst,
-      std::function<bool(char)> matchFurther,
-      const char * base = nullptr) const; 
-  std::optional<CurrentToken> matchNumberNoDecimal(
-    SourcePosition start,
-    const char * base = nullptr) const; 
-  std::optional<CurrentToken> matchNumber() const; 
-  std::optional<CurrentToken> matchIdentifier() const; 
-  std::optional<CurrentToken> matchWhitespace() const;  
+  std::optional<CurrentToken> 
+  matchRegex(TokenKind tokenKind, const char * regex) const; 
 
+  std::string_view::const_iterator m_end;
   SourcePosition m_pos;
   mutable std::optional<CurrentToken> m_current;
   bool m_invalid;
@@ -75,7 +69,7 @@ private:
 class Lexer 
 {
 public:
-  Lexer(const char * input) 
+  Lexer(const std::string_view& input)
     : m_input(input)
   { }
 
@@ -89,7 +83,7 @@ public:
   { return TokenIterator(); }
 
 private:
-  const char * const m_input;
+  const std::string_view& m_input;
 };
 
 } /* namespace kcalc */

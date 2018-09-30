@@ -9,15 +9,14 @@ TEST(LexerTest, Identifier)
   Lexer lexer(test);
   std::vector<Token> expected = {
     Token(TokenKind::Identifier, SourcePosition(0,0),
-    test, 7),
+        std::string_view(test, 7)),
     Token(TokenKind::Plus, SourcePosition(0,7),
-    test+7, 1),
+        std::string_view(test+7, 1)),
     Token(TokenKind::Equals, SourcePosition(0,8),
-    test+8, 1), 
+        std::string_view(test+8, 1)),
     Token(TokenKind::Number, SourcePosition(0,9),
-    test+9, 2), 
+        std::string_view(test+9, 2))
   }; 
-  std::vector<Token> tokens; 
   unsigned int count = 0;
   for (auto it = lexer.begin(); it != lexer.end();
        ++it, ++count)

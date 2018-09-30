@@ -40,6 +40,12 @@ public:
 
   SourcePosition operator+(unsigned int offset) const
   { return SourcePosition(m_line, m_offset + offset); } 
+
+  SourcePosition& operator+=(unsigned int offset) 
+  { 
+    m_offset += offset;
+    return *this;
+  }  
   
   friend std::ostream& operator<<(std::ostream& out, 
                                   const SourcePosition& pos)
@@ -68,18 +74,12 @@ public:
   { }  
   Token(const TokenKind kind, 
         const SourcePosition& pos,
-        const char * ptr,
-        unsigned int len)
-    : m_kind{kind}, m_pos{pos}, m_text{ptr, len}
-  { }
-
-  Token(Token&& original)
-    : m_kind { original.m_kind },
-      m_pos { original.m_pos },
-      m_text { std::move(original.m_text) }
+        const std::string_view& view)
+    : m_kind{kind}, m_pos{pos}, m_text{view}
   { }
 
   Token(const Token&) = default;
+  Token(Token&&) = default; 
   Token& operator=(const Token&) = default;
 
   TokenKind kind() const  
