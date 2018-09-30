@@ -92,3 +92,12 @@ TEST(AstTest, TestException)
   { }
   ASSERT_TRUE(1 == 0); 
 } 
+
+TEST(AstTest, Complex)
+{
+  using namespace kcalc;
+  const char * number = "-12.125e+12i";
+  kcalc::Number num((std::string_view(number)));
+  std::string result = num.to_string();
+  ASSERT_STREQ("-12125000000000i", result.c_str());
+} 

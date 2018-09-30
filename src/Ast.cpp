@@ -144,7 +144,10 @@ std::string Number::to_string() const
   if (printReal && printImaginary)
     result.append(" + ");
   if (printImaginary)
+  {
     result.append(m_imaginary.get_str());
+    result.append("i");
+  }
   if (!printReal && !printImaginary)
     result.append("0");
   return result;
