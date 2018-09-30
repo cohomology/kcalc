@@ -73,18 +73,17 @@ static long parseExponent(const std::string_view& view)
 Number::Number(const std::string_view& text)
   : m_real(), m_imaginary()
 {
-  auto decimalPoint = std::find_if(text.begin(),
-      text.end(), [](char c) { return c == '.'; });
-  auto exponential = std::find_if(text.begin(),
-      text.end(), [](char c) { 
-      return c == 'E' || c == 'e'; });
   auto end = text.end();
   bool complexI = false;
   if (text.back() == 'i') 
   {
     end = text.begin() + text.size() - 1;
     complexI = true;
-  }
+  } 
+  auto decimalPoint = std::find_if(text.begin(), end, 
+      [](char c) { return c == '.'; });
+  auto exponential = std::find_if(text.begin(), end, 
+      [](char c) { return c == 'E' || c == 'e'; });
   std::string number(text.begin(), 
       decimalPoint != end ? decimalPoint : 
       ( exponential != end ? exponential :

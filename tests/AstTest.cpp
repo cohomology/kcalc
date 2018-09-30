@@ -7,7 +7,7 @@ TEST(AstTest, SimplePositive)
 {
   using namespace kcalc;
   const char * number = "121231";
-  kcalc::Number num(std::string_view(number, 6));
+  kcalc::Number num((std::string_view(number)));
   std::string result = num.to_string();
   ASSERT_STREQ("121231", result.c_str());
 } 
@@ -100,4 +100,22 @@ TEST(AstTest, Complex)
   kcalc::Number num((std::string_view(number)));
   std::string result = num.to_string();
   ASSERT_STREQ("-12125000000000i", result.c_str());
+} 
+
+TEST(AstTest, Complex2)
+{
+  using namespace kcalc;
+  const char * number = "-12.125i";
+  kcalc::Number num((std::string_view(number)));
+  std::string result = num.to_string();
+  ASSERT_STREQ("-97/8i", result.c_str());
+} 
+
+TEST(AstTest, Complex3)
+{
+  using namespace kcalc;
+  const char * number = "121231i";
+  kcalc::Number num((std::string_view(number)));
+  std::string result = num.to_string();
+  ASSERT_STREQ("121231i", result.c_str());
 } 
