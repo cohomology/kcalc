@@ -5,6 +5,7 @@ include_directories (
   ${GMP_INCLUDES}
 ) 
 add_library (lexer Lexer.cpp Token.cpp)
-add_library (parser Parser.cpp Ast.cpp)
+add_library (parser Parser.cpp)
+add_library (ast Ast.cpp)
 add_executable (kcalc Kcalc.cpp)
-target_link_libraries (kcalc lexer parser Threads::Threads ${GMP_LIBRARIES})
+target_link_libraries (kcalc lexer parser ast Threads::Threads ${GMP_LIBRARIES})

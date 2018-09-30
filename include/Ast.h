@@ -166,6 +166,9 @@ public:
     return m_number == num.m_number;
   }
 
+  std::string get_string() const
+  { return m_number.get_str(); }
+
 private:
   mpq_class m_number;
 };
