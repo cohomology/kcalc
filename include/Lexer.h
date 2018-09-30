@@ -76,10 +76,10 @@ public:
   Lexer(const Lexer&) = delete;
   Lexer& operator=(const Lexer&) = delete;
 
-  TokenIterator begin() 
+  TokenIterator begin() const
   { return TokenIterator(m_input); }
 
-  TokenIterator end() 
+  TokenIterator end() const
   { return TokenIterator(); }
 
 private:
