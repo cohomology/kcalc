@@ -1,7 +1,10 @@
+find_package(Boost 1.56)
+find_package(GMP 6.0.0)
 include_directories (
   ${PROJECT_SOURCE_DIR}/include
-)
-find_package(Boost 1.56)
-add_library (lexer Lexer.cpp Token.cpp Parser.cpp)
+  ${GMP_INCLUDES}
+) 
+add_library (lexer Lexer.cpp Token.cpp)
+add_library (parser Parser.cpp Ast.cpp)
 add_executable (kcalc Kcalc.cpp)
-target_link_libraries (kcalc lexer Threads::Threads)
+target_link_libraries (kcalc lexer parser Threads::Threads ${GMP_LIBRARIES})
