@@ -50,7 +50,8 @@ public:
   friend std::ostream& operator<<(std::ostream& out, 
                                   const SourcePosition& pos)
   { 
-    out << "(" << pos.m_line << ", " << pos.m_offset << ")"; 
+    out << "( line = " << pos.m_line << ", " 
+        << "offset = " << pos.m_offset << ")"; 
     return out;
   }
 
@@ -94,10 +95,20 @@ public:
   friend std::ostream& operator<<(std::ostream& out, 
                                   const Token& token)
   { 
-    out << "(" << token.m_kind << ", " << token.m_pos << ", " 
-        << token.m_text << ")";
+    out << "( kind =" << token.m_kind << ", "
+        << "pos = " << token.m_pos << ", " 
+        << "text = \"" << token.m_text << "\")";
     return out;
   } 
+
+  constexpr unsigned short line() const
+  { return m_pos.line(); }
+
+  constexpr unsigned short offset() const
+  { return m_pos.offset(); } 
+
+  constexpr unsigned short length() const
+  { return m_text.length(); }  
 
   bool operator==(const Token& other) const
   { 

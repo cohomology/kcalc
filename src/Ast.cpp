@@ -55,6 +55,14 @@ std::string ArithmeticExpression::to_string() const
   return result; 
 }
 
+std::string UnaryMinusExpression::to_string() const 
+{
+  std::string result;
+  result.append(" - ");
+  result.append(inner().to_string());
+  return result; 
+} 
+
 static long parseExponent(const std::string_view& view)
 {
   assert(!view.empty());

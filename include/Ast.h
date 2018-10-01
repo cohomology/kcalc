@@ -15,14 +15,13 @@ enum class ObjectKind : unsigned short
   ArithmeticExpression = 0u,
   Assignment = 1u,
   Variable = 2u,
-  Number = 3u
+  Number = 3u,
+  UnaryMinus = 4u
 };
 
 class AstObject
 {
 public:
-  virtual bool isAtomicExpression() const
-  { return false; }
   virtual std::string to_string() const = 0; 
   virtual ObjectKind kind() const = 0;
   virtual bool equals(const AstObject&) const = 0;
@@ -35,7 +34,11 @@ public:
 };
 
 class Expression : public AstObject
-{ };
+{ 
+public:
+  virtual bool isAtomicExpression() const
+  { return false; } 
+};
 
 class Assignment : public AstObject
 {
@@ -164,6 +167,46 @@ private:
   std::unique_ptr<Expression> m_left;
   std::unique_ptr<Expression> m_right;
 };
+
+class UnaryMinusExpression : public Expression
+{
+public:
+  UnaryMinusExpression(std::unique_ptr<Expression> inner) 
+    : m_inner{std::move(inner)}
+  { }
+
+  ObjectKind kind() const override
+  { return ObjectKind::UnaryMinus; }
+
+  bool equals(const AstObject& other) const override
+  { 
+    if (this == &other)
+      return true;
+    else if (other.kind() != 
+        ObjectKind::UnaryMinus)
+      return false;
+    auto& minus =
+      static_cast<const UnaryMinusExpression&>(other);
+    return inner().equals(minus.inner());
+  }
+
+  std::string to_string() const override; 
+
+  const Expression& inner() const
+  { 
+    assert(m_inner);
+    return *m_inner.get(); 
+  }
+
+  Expression& inner() 
+  { 
+    assert(m_inner);
+    return *m_inner.get(); 
+  } 
+
+private:
+  std::unique_ptr<Expression> m_inner;
+}; 
 
 class Variable : public Expression
 {
