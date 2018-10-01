@@ -16,8 +16,10 @@ Token TokenIterator::dereference() const
       token = Token(current->kind, m_pos, 
           std::string_view(&*base(), current->length));
     else if (base() != m_end)
+    {
       token = Token(TokenKind::Unknown, m_pos,
           std::string_view(this->base(), 1));
+    }
   }
   return token;
 }  

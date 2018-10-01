@@ -10,7 +10,7 @@ std::unique_ptr<AstObject> Parser::parse()
   std::unique_ptr<AstObject> object = expression();
   auto la = LA();
   if (la)
-    unexpectedToken(la, TokenKind::Unknown);
+    unexpectedToken(*la, TokenKind::Unknown);
   return object;
 }
 
