@@ -46,6 +46,7 @@ protected:
   std::unique_ptr<Expression> multiplicativeExpression(); 
   std::unique_ptr<Expression> unaryMinusExpression(); 
   std::unique_ptr<Expression> atomicExpression(); 
+  std::unique_ptr<Expression> powerExpression(); 
   [[noreturn]] void illegalEndOfInput(
       const std::vector<TokenKind>& expected);
   [[noreturn]] void unexpectedToken(const Token& token, 

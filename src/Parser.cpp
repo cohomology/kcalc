@@ -7,7 +7,11 @@ namespace kcalc
 
 std::unique_ptr<AstObject> Parser::parse()
 {
-  return expression();
+  std::unique_ptr<AstObject> object = expression();
+  auto la = LA();
+  if (la)
+    unexpectedToken(la, TokenKind::Unknown);
+  return object;
 }
 
 std::unique_ptr<Expression> Parser::expression()
@@ -62,38 +66,57 @@ std::unique_ptr<Expression> Parser::unaryMinusExpression()
     unaryMinus = true;
   }
   std::unique_ptr<Expression> expr 
-    = atomicExpression();
+    = powerExpression();
   if (unaryMinus)
     expr = std::make_unique<UnaryMinusExpression>(
         std::move(expr));  
   return expr;
 } 
 
+std::unique_ptr<Expression> Parser::powerExpression()
+{
+  std::unique_ptr<Expression> first 
+    = atomicExpression();
+  auto la = LA();
+  if (la && la->kind() == TokenKind::Power) 
+  {
+    std::unique_ptr<Expression> next 
+      = powerExpression(); 
+    first = std::make_unique<ArithmeticExpression>(
+        ArithmeticExpression::Power,
+        std::move(first), std::move(next)); 
+  }
+  return first; 
+} 
+
 std::unique_ptr<Expression> Parser::atomicExpression()
 {
   auto la = LA();
-  if (!la)
-    illegalEndOfInput({TokenKind::LeftParen, 
-        TokenKind::Number});
-  switch(la->kind())
+  std::unique_ptr<Expression> expr; 
+  if (la)
   {
-    case TokenKind::LeftParen:
+    switch(la->kind())
     {
-      match(TokenKind::LeftParen);
-      std::unique_ptr<Expression> expr = 
-        expression();
-      match(TokenKind::RightParen); 
-      return expr;
+      case TokenKind::LeftParen:
+      {
+        match(TokenKind::LeftParen);
+        expr = expression();
+        match(TokenKind::RightParen); 
+        break;
+      }
+      case TokenKind::Number:
+      {
+        expr = std::make_unique<Number>(la->text());
+        break;
+      }
+      default:
+        break;
     }
-    case TokenKind::Number:
-    {
-      return nullptr;
-    }
-    default:
-      break;
   }
-  illegalEndOfInput({TokenKind::LeftParen, 
+  if (!expr)
+    illegalEndOfInput({TokenKind::LeftParen, 
         TokenKind::Number}); 
+  return expr;
 } 
 
 void Parser::match(TokenKind kind) 

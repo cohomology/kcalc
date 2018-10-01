@@ -135,7 +135,7 @@ public:
       const char * file,
       unsigned int line,
       const Token& token, 
-      const TokenKind expected) : 
+      const TokenKind expected = TokenKind::Unknown) : 
     ParseError(file, line, token), m_expected{expected}
   { }
   
@@ -146,8 +146,12 @@ public:
     assert(m_token);
     std::stringstream stream;
     stream << "Parse error: Unexpected token: \""
-           << *m_token << ". Expected was: \"" 
-           << m_expected << "\"."; 
+           << *m_token << ". "; 
+    if (m_expected != TokenKind::Unknown)
+    {
+      stream << "Expected was: \"" 
+             << m_expected << "\"."; 
+    }
     return stream.str();
   }
 private:
