@@ -12,19 +12,19 @@
 namespace kcalc 
 {
 
-struct IsWhiteSpace 
+struct IsNoWhiteSpace 
 {
   bool operator()(const Token& token)
   {
-    return token.kind() == TokenKind::Whitespace ||
-        token.kind() == TokenKind::Newline;
+    return token.kind() != TokenKind::Whitespace &&
+        token.kind() != TokenKind::Newline;
   }
 }; 
 
 class Parser
 {
 public:
-  typedef boost::filter_iterator<IsWhiteSpace, TokenIterator>
+  typedef boost::filter_iterator<IsNoWhiteSpace, TokenIterator>
     IteratorType;
 
   Parser(const Lexer& lexer) :
@@ -51,6 +51,7 @@ protected:
       const std::vector<TokenKind>& expected);
   [[noreturn]] void unexpectedToken(const Token& token, 
       const TokenKind expected);
+  [[noreturn]] void illegalToken(const Token& token); 
 private:
   IteratorType         m_begin;
   IteratorType         m_end;

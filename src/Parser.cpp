@@ -38,14 +38,14 @@ std::unique_ptr<Expression> Parser::expression()
 std::unique_ptr<Expression> Parser::multiplicativeExpression()
 {
   std::unique_ptr<Expression> first 
-    = unaryMinusExpression();
+    = powerExpression();
   auto la = LA();
   while(la && (la->kind() == TokenKind::Asterisk ||
                la->kind() == TokenKind::Slash))
   {
     match(la->kind());
     std::unique_ptr<Expression> next 
-      = unaryMinusExpression(); 
+      = powerExpression(); 
     first = std::make_unique<ArithmeticExpression>(
         la->kind() == TokenKind::Asterisk ? 
           ArithmeticExpression::Multiply :
@@ -56,30 +56,14 @@ std::unique_ptr<Expression> Parser::multiplicativeExpression()
   return first;
 } 
 
-std::unique_ptr<Expression> Parser::unaryMinusExpression()
-{
-  bool unaryMinus = false;
-  auto la = LA();
-  if (la->kind() == TokenKind::Minus)
-  {
-    match(TokenKind::Minus);
-    unaryMinus = true;
-  }
-  std::unique_ptr<Expression> expr 
-    = powerExpression();
-  if (unaryMinus)
-    expr = std::make_unique<UnaryMinusExpression>(
-        std::move(expr));  
-  return expr;
-} 
-
 std::unique_ptr<Expression> Parser::powerExpression()
 {
   std::unique_ptr<Expression> first 
-    = atomicExpression();
+    = unaryMinusExpression();
   auto la = LA();
   if (la && la->kind() == TokenKind::Power) 
   {
+    match(TokenKind::Power);
     std::unique_ptr<Expression> next 
       = powerExpression(); 
     first = std::make_unique<ArithmeticExpression>(
@@ -87,6 +71,32 @@ std::unique_ptr<Expression> Parser::powerExpression()
         std::move(first), std::move(next)); 
   }
   return first; 
+}  
+
+std::unique_ptr<Expression> Parser::unaryMinusExpression()
+{
+  bool unaryMinus = false;
+  auto la = LA();
+  switch(la->kind())
+  {
+    case TokenKind::Minus: 
+    {
+      match(TokenKind::Minus);
+      unaryMinus = true; 
+      break;
+    }
+    case TokenKind::Plus:
+      match(TokenKind::Plus);
+      break;
+    default:
+      break;
+  }
+  std::unique_ptr<Expression> expr 
+    = atomicExpression();
+  if (unaryMinus)
+    expr = std::make_unique<UnaryMinusExpression>(
+        std::move(expr));  
+  return expr;
 } 
 
 std::unique_ptr<Expression> Parser::atomicExpression()
@@ -106,6 +116,7 @@ std::unique_ptr<Expression> Parser::atomicExpression()
       }
       case TokenKind::Number:
       {
+        match(TokenKind::Number);
         expr = std::make_unique<Number>(la->text());
         break;
       }

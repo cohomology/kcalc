@@ -21,6 +21,8 @@ enum ExceptionClass : unsigned int
 
 enum class ExceptionKind : unsigned int
 {
+  IllegalToken = ExceptionClass::LexerErrorClass + 0u, 
+
   ExponentOverflow = ExceptionClass::ArithmeticErrorClass + 0u,
 
   IllegalEndOfInput = ExceptionClass::ParserErrorClass + 0u,
@@ -70,6 +72,45 @@ private:
   const std::string m_exponent;
 };
 
+class LexerError : public Exception
+{
+public:
+  LexerError(
+      const char * file,
+      unsigned int line,
+      const Token& token) :
+    Exception(file, line), m_token{token}
+  { } 
+  ExceptionClass exceptionClass() const override
+  { return LexerErrorClass; } 
+  Token token() const
+  { return m_token; }
+protected:
+  Token m_token;
+}; 
+
+class IllegalToken : public LexerError
+{
+public:
+  IllegalToken(
+      const char * file,
+      unsigned int line,
+      const Token& token) : 
+    LexerError(file, line, token)
+  { } 
+  ExceptionKind exceptionKind() const override
+  { return ExceptionKind::IllegalToken; } 
+  std::string what() const override  
+  {
+    unsigned int line = m_token.line();
+    unsigned int offset = m_token.offset();
+    std::stringstream stream;
+    stream << "Lexer error: Illegal token: \""
+           << m_token << "\".";
+    return stream.str();
+  } 
+}; 
+
 class ParseError : public Exception
 {
 public:
@@ -98,7 +139,6 @@ public:
       const std::vector<TokenKind>& expected) : 
     ParseError(file, line, token), m_expected{expected}
   { }
-  
   ExceptionKind exceptionKind() const override
   { return ExceptionKind::IllegalEndOfInput; }
   std::string what() const override  

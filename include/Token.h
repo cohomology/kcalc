@@ -15,8 +15,19 @@ enum class TokenKind : unsigned short
 #undef DEFINE_TOKENKIND
 };
 
-std::ostream& operator<<(std::ostream& out, 
-    TokenKind kind);
+inline std::ostream& operator<<(std::ostream& out, TokenKind kind)
+{ 
+  switch(kind)
+  {
+#define DEFINE_TOKENKIND(a) \
+    case TokenKind::a:      \
+      out << #a;            \
+      break;
+#include "TokenKind.h"
+#undef DEFINE_TOKENKIND
+  }
+  return out;
+} 
 
 class SourcePosition
 {

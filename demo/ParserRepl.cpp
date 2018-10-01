@@ -4,6 +4,7 @@
 #include <readline/history.h>
 
 #include "Parser.h" 
+#include "Exceptions.h"
 
 int main()
 {
@@ -15,7 +16,7 @@ int main()
       {
         kcalc::Lexer lexer(input);
         kcalc::Parser parser(lexer);
-        std::unique_ptr<AstObject> result =
+        std::unique_ptr<kcalc::AstObject> result =
           parser.parse();
         if (result)
           std::cout << *result << std::endl;
@@ -24,7 +25,7 @@ int main()
       }
       catch(const kcalc::Exception& e)
       {
-        std::cout << e.what << std::endl;
+        std::cout << e.what() << std::endl;
       }
     }
     free(input);
