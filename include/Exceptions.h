@@ -21,6 +21,7 @@ enum ExceptionClass : unsigned int
 enum class ExceptionKind : unsigned int
 {
   ExponentOverflow = ExceptionClass::ArithmeticErrorClass + 0u,
+  DivisionByZero = ExceptionClass::ArithmeticErrorClass + 1u, 
 
   IllegalEndOfInput = ExceptionClass::ParserErrorClass + 0u,
   UnexpectedToken  = ExceptionClass::ParserErrorClass + 1u,
@@ -66,6 +67,22 @@ public:
 private:
   const std::string m_exponent;
 };
+
+class DivisionByZeroException : public Exception
+{
+public:
+  DivisionByZeroException(
+      const char * file,
+      unsigned int line) :
+    Exception(file, line)
+  { }
+  ExceptionClass exceptionClass() const override
+  { return ArithmeticErrorClass; }
+  ExceptionKind exceptionKind() const override
+  { return ExceptionKind::DivisionByZero; }
+  std::string what() const override;
+private:
+}; 
 
 class ParseError : public Exception
 {

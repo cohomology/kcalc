@@ -13,6 +13,13 @@ std::string ExponentiationOverflow::what() const
   return stream.str();
 } 
 
+std::string DivisionByZeroException::what() const   
+{
+  std::stringstream stream;
+  stream << "  Arithmetic error: Division by zero.";
+  return stream.str();
+} 
+
 std::string IllegalCharacter::what() const   
 {
   assert(m_token);

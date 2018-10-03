@@ -2,7 +2,6 @@
 #include "Exceptions.h"
 
 #include <cassert>
-#include <iterator>
 
 namespace kcalc
 {
