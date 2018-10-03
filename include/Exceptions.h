@@ -21,7 +21,7 @@ enum ExceptionClass : unsigned int
 
 enum class ExceptionKind : unsigned int
 {
-  IllegalToken = ExceptionClass::LexerErrorClass + 0u, 
+  IllegalCharacter = ExceptionClass::LexerErrorClass + 0u, 
 
   ExponentOverflow = ExceptionClass::ArithmeticErrorClass + 0u,
 
@@ -36,10 +36,13 @@ public:
             unsigned int line)
     : m_file{file}, m_line{line}
   { }
-
   virtual std::string what() const = 0;
   virtual ExceptionClass exceptionClass() const = 0;
   virtual ExceptionKind exceptionKind() const = 0;
+  const char * file() const
+  { return m_file; }
+  unsigned int line() const
+  { return m_line; }
 private:
   const char * m_file;
   unsigned int m_line;
@@ -59,13 +62,7 @@ public:
   { return ArithmeticErrorClass; }
   ExceptionKind exceptionKind() const override
   { return ExceptionKind::ExponentOverflow; }
-  std::string what() const override  
-  {
-    std::stringstream stream;
-    stream << "Exponent \"" << m_exponent
-           << "\" to large.";
-    return stream.str();
-  }
+  std::string what() const override;
   std::string exponent() const
   { return m_exponent; }
 private:
@@ -89,26 +86,18 @@ protected:
   Token m_token;
 }; 
 
-class IllegalToken : public LexerError
+class IllegalCharacter : public LexerError
 {
 public:
-  IllegalToken(
+  IllegalCharacter(
       const char * file,
       unsigned int line,
       const Token& token) : 
     LexerError(file, line, token)
   { } 
   ExceptionKind exceptionKind() const override
-  { return ExceptionKind::IllegalToken; } 
-  std::string what() const override  
-  {
-    unsigned int line = m_token.line();
-    unsigned int offset = m_token.offset();
-    std::stringstream stream;
-    stream << "Lexer error: Illegal token: \""
-           << m_token << "\".";
-    return stream.str();
-  } 
+  { return ExceptionKind::IllegalCharacter; } 
+  std::string what() const override;  
 }; 
 
 class ParseError : public Exception
@@ -141,29 +130,7 @@ public:
   { }
   ExceptionKind exceptionKind() const override
   { return ExceptionKind::IllegalEndOfInput; }
-  std::string what() const override  
-  {
-    unsigned int line = m_token ? m_token->line() : 0;
-    unsigned int offset = m_token ? m_token->offset() +
-      m_token->length() : 0;
-    std::stringstream stream;
-    stream << "Parse error: Illegal end of input at " 
-           << "line \"" << line << "\" "
-           << "offset \"" << offset
-           << "."  << std::endl;
-    stream << " Expected: { ";
-    bool first = true;
-    for (auto v : m_expected)
-    {
-      if (!first)
-        stream << ", ";
-      else
-        first = false;
-      stream << v; 
-    }
-    stream << "}";
-    return stream.str();
-  }
+  std::string what() const override;  
 private:
   const std::vector<TokenKind> m_expected; 
 };
@@ -175,27 +142,15 @@ public:
       const char * file,
       unsigned int line,
       const Token& token, 
-      const TokenKind expected = TokenKind::Unknown) : 
+      const std::vector<TokenKind>& expected) :  
     ParseError(file, line, token), m_expected{expected}
   { }
   
   ExceptionKind exceptionKind() const override
   { return ExceptionKind::UnexpectedToken; }
-  std::string what() const override  
-  {
-    assert(m_token);
-    std::stringstream stream;
-    stream << "Parse error: Unexpected token: \""
-           << *m_token << ". "; 
-    if (m_expected != TokenKind::Unknown)
-    {
-      stream << "Expected was: \"" 
-             << m_expected << "\"."; 
-    }
-    return stream.str();
-  }
+  std::string what() const override;  
 private:
-  TokenKind m_expected;
+  const std::vector<TokenKind> m_expected;  
 }; 
 
 } /* namespace kcalc */

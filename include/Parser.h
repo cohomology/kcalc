@@ -50,7 +50,7 @@ protected:
   [[noreturn]] void illegalEndOfInput(
       const std::vector<TokenKind>& expected);
   [[noreturn]] void unexpectedToken(const Token& token, 
-      const TokenKind expected);
+      const std::vector<TokenKind>& expected); 
   [[noreturn]] void illegalToken(const Token& token); 
 private:
   IteratorType         m_begin;

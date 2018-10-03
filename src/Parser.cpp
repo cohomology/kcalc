@@ -10,7 +10,7 @@ std::unique_ptr<AstObject> Parser::parse()
   std::unique_ptr<AstObject> object = expression();
   auto la = LA();
   if (la)
-    unexpectedToken(*la, TokenKind::Unknown);
+    unexpectedToken(*la, { TokenKind::EndOfInput });
   return object;
 }
 
@@ -121,6 +121,8 @@ std::unique_ptr<Expression> Parser::atomicExpression()
         break;
       }
       default:
+        unexpectedToken(*la, {TokenKind::LeftParen, 
+          TokenKind::Number});  
         break;
     }
   }
@@ -143,7 +145,7 @@ void Parser::match(TokenKind kind)
       ++m_begin; 
     }
     else
-      unexpectedToken(token, kind);
+      unexpectedToken(token, { kind });
   }
 }
 
@@ -161,7 +163,7 @@ void Parser::illegalEndOfInput(
 }
 
 void Parser::unexpectedToken(const Token& token, 
-      const TokenKind expected)
+    const std::vector<TokenKind>& expected)  
 {
   throw UnexpectedToken(__FILE__, __LINE__,
           token, expected); 

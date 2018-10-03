@@ -6,6 +6,7 @@ include_directories (
 ) 
 add_library (lexer Lexer.cpp)
 add_library (parser Parser.cpp)
+add_library (exceptions Exceptions.cpp)
 add_library (ast Ast.cpp)
 add_executable (kcalc Kcalc.cpp)
-target_link_libraries (kcalc lexer parser ast Threads::Threads ${GMP_LIBRARIES})
+target_link_libraries (kcalc lexer parser ast exceptions Threads::Threads ${GMP_LIBRARIES})
