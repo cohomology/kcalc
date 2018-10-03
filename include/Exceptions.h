@@ -13,20 +13,18 @@ namespace kcalc
 
 enum ExceptionClass : unsigned int
 {
-  LexerErrorClass      = 0u,
-  ParserErrorClass     = 1000u,
-  SemanticErrorClass   = 2000u,
-  ArithmeticErrorClass = 4000u
+  ParserErrorClass     = 0u,
+  SemanticErrorClass   = 1000u,
+  ArithmeticErrorClass = 2000u
 };
 
 enum class ExceptionKind : unsigned int
 {
-  IllegalCharacter = ExceptionClass::LexerErrorClass + 0u, 
-
   ExponentOverflow = ExceptionClass::ArithmeticErrorClass + 0u,
 
   IllegalEndOfInput = ExceptionClass::ParserErrorClass + 0u,
-  UnexpectedToken  = ExceptionClass::ParserErrorClass + 1u
+  UnexpectedToken  = ExceptionClass::ParserErrorClass + 1u,
+  IllegalCharacter = ExceptionClass::ParserErrorClass + 2u,  
 };
 
 class Exception
@@ -69,37 +67,6 @@ private:
   const std::string m_exponent;
 };
 
-class LexerError : public Exception
-{
-public:
-  LexerError(
-      const char * file,
-      unsigned int line,
-      const Token& token) :
-    Exception(file, line), m_token{token}
-  { } 
-  ExceptionClass exceptionClass() const override
-  { return LexerErrorClass; } 
-  Token token() const
-  { return m_token; }
-protected:
-  Token m_token;
-}; 
-
-class IllegalCharacter : public LexerError
-{
-public:
-  IllegalCharacter(
-      const char * file,
-      unsigned int line,
-      const Token& token) : 
-    LexerError(file, line, token)
-  { } 
-  ExceptionKind exceptionKind() const override
-  { return ExceptionKind::IllegalCharacter; } 
-  std::string what() const override;  
-}; 
-
 class ParseError : public Exception
 {
 public:
@@ -117,6 +84,20 @@ public:
 protected:
   std::optional<Token> m_token;
 };
+
+class IllegalCharacter : public ParseError
+{
+public:
+  IllegalCharacter(
+      const char * file,
+      unsigned int line,
+      const Token& token) : 
+    ParseError(file, line, token)
+  { } 
+  ExceptionKind exceptionKind() const override
+  { return ExceptionKind::IllegalCharacter; } 
+  std::string what() const override;  
+}; 
 
 class IllegalEndOfInput : public ParseError
 {

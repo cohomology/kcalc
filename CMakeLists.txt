@@ -9,6 +9,10 @@ set (CMAKE_CXX_STANDARD_REQUIRED ON)
 set (CMAKE_CXX_EXTENSIONS OFF)   
 
 find_package(Threads REQUIRED)
+find_package(Boost 1.56 REQUIRED)
+find_package(GMP 6.0.0 REQUIRED)
+find_package(Readline REQUIRED)  
+
 enable_testing()
 
 add_subdirectory (src)
