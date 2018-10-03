@@ -50,6 +50,8 @@ ComplexNumber::ComplexNumber(const std::string_view& text)
     for(int i = 0; i < numberOfDecimals; ++i)
       number.append("0");
   }
+  if (number.empty())
+    number = "1"; 
   mpq_t num;
   mpq_init(num);
   mpq_set_str(num, number.c_str(), 10);
@@ -96,7 +98,8 @@ std::string ComplexNumber::to_string() const
     result.append(" + ");
   if (printImaginary)
   {
-    result.append(m_imaginary.get_str());
+    if (m_imaginary != 1)
+      result.append(m_imaginary.get_str());
     result.append("i");
   }
   if (!printReal && !printImaginary)

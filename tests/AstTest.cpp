@@ -119,3 +119,12 @@ TEST(AstTest, Complex3)
   std::string result = num.to_string();
   ASSERT_STREQ("121231i", result.c_str());
 } 
+
+TEST(AstTest, Complex4)
+{
+  using namespace kcalc;
+  const char * number = "i";
+  kcalc::Number num((std::string_view(number)));
+  std::string result = num.to_string();
+  ASSERT_STREQ("i", result.c_str());
+} 

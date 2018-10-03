@@ -3,8 +3,8 @@
     defined(DEFINE_TOKENKIND_SIMPLE)
 DEFINE_TOKENKIND_MANUAL(Unknown)
 
-DEFINE_TOKENKIND_COMPLEX(Identifier, "[A-Za-z_][A-Za-z0-9_]*")
-DEFINE_TOKENKIND_COMPLEX(Number, "((0(\\.[0-9]*)?)|(([1-9][0-9]*)(\\.([0-9]*))?))([Ee][+-]?[1-9][0-9]*)?i?")
+DEFINE_TOKENKIND_COMPLEX(Identifier, "([A-Za-hj-z_][A-Za-z0-9_]*)|i[A-Za-z0-9_]+") 
+DEFINE_TOKENKIND_COMPLEX(Number, "i|(((0(\\.[0-9]*)?)|(([1-9][0-9]*)(\\.([0-9]*))?))([Ee][+-]?[1-9][0-9]*)?i?)") 
 DEFINE_TOKENKIND_COMPLEX(Newline, "(\\r\\n)|(\\n)")
 DEFINE_TOKENKIND_COMPLEX(Whitespace, "[\\s]+")  
 
