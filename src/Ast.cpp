@@ -43,6 +43,9 @@ std::string ArithmeticExpression::to_string() const
     case Power:
       result.append(" ^ ");
       break; 
+    case Modulo:
+      result.append(" % ");
+      break;  
     default:
       assert(1 == 0);
       break;

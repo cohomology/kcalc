@@ -19,6 +19,7 @@ DEFINE_TOKENKIND_SIMPLE(LeftBracket, '{')
 DEFINE_TOKENKIND_SIMPLE(RightBracket, '}')
 DEFINE_TOKENKIND_SIMPLE(Comma, ',')
 DEFINE_TOKENKIND_SIMPLE(Power, '^') 
+DEFINE_TOKENKIND_SIMPLE(Modulo, '%')  
 
 DEFINE_TOKENKIND_MANUAL(EndOfInput) // must be last element
 #else

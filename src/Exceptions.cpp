@@ -19,8 +19,8 @@ std::string IllegalCharacter::what() const
   unsigned int line = m_token->line();
   unsigned int offset = m_token->offset();
   std::stringstream stream;
-  stream << "Lexer error: Illegal character: \""
-          << *m_token << "\".";
+  stream << "  Lexer error: Illegal character: \""
+          << m_token->text() << "\".";
   return stream.str();
 } 
 

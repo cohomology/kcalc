@@ -41,7 +41,8 @@ std::unique_ptr<Expression> Parser::multiplicativeExpression()
     = powerExpression();
   auto la = LA();
   while(la && (la->kind() == TokenKind::Asterisk ||
-               la->kind() == TokenKind::Slash))
+               la->kind() == TokenKind::Slash || 
+               la->kind() == TokenKind::Modulo))
   {
     match(la->kind());
     std::unique_ptr<Expression> next 
@@ -49,7 +50,9 @@ std::unique_ptr<Expression> Parser::multiplicativeExpression()
     first = std::make_unique<ArithmeticExpression>(
         la->kind() == TokenKind::Asterisk ? 
           ArithmeticExpression::Multiply :
-          ArithmeticExpression::Divide,
+        la->kind() == TokenKind::Slash ?
+          ArithmeticExpression::Divide :
+          ArithmeticExpression::Modulo,
           std::move(first), std::move(next));
     la = LA();
   } 
@@ -165,8 +168,12 @@ void Parser::illegalEndOfInput(
 void Parser::unexpectedToken(const Token& token, 
     const std::vector<TokenKind>& expected)  
 {
-  throw UnexpectedToken(__FILE__, __LINE__,
-          token, expected); 
+  if(token.kind() == TokenKind::Unknown)
+    throw IllegalCharacter(__FILE__, __LINE__,
+        token);  
+  else
+    throw UnexpectedToken(__FILE__, __LINE__,
+        token, expected); 
 }
 
 } /* namespace kcalc */

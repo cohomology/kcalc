@@ -106,7 +106,8 @@ public:
     Subtract,
     Multiply,
     Divide,
-    Power
+    Power, 
+    Modulo
   };
 
   ArithmeticExpression(Operation operation,
