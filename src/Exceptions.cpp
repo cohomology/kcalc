@@ -8,7 +8,7 @@ namespace kcalc
 std::string ExponentiationOverflow::what() const   
 {
   std::stringstream stream;
-  stream << "Exponent \"" << m_exponent
+  stream << "  Arithmetic overflow: Exponent \"" << m_exponent
     << "\" to large.";
   return stream.str();
 } 

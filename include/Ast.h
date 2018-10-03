@@ -1,11 +1,11 @@
 #ifndef KCALC_AST_H
 #define KCALC_AST_H 
 
-#include <gmpxx.h>
-
 #include <memory>
 #include <cassert>
 #include <ostream>
+
+#include "Arithmetic.h"
 
 namespace kcalc 
 {
@@ -247,13 +247,15 @@ private:
 class Number : public Expression
 {
 public:
-  Number(const std::string_view& text);
+  Number(const std::string_view& text)
+    : m_number{text}
+  { }
 
   ObjectKind kind() const override
   { return ObjectKind::Number; }
 
   bool isAtomicExpression() const override
-  { return m_real == 0 || m_imaginary == 0; } 
+  { return m_number.isPure(); }
   
   bool equals(const AstObject& other) const override
   { 
@@ -264,15 +266,14 @@ public:
       return false;
     const Number& num =
       static_cast<const Number&>(other);
-    return m_real == num.m_real &&
-      m_imaginary == num.m_imaginary;
+    return m_number == num.m_number;
   }
 
-  std::string to_string() const override;
+  std::string to_string() const override
+  { return m_number.to_string(); }
 
 private:
-  mpq_class m_real;
-  mpq_class m_imaginary;
+  ComplexNumber m_number;
 };
 
 } /* namespace kcalc */
