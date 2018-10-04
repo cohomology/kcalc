@@ -29,4 +29,32 @@ TEST(ArithTest, TestFloorNegative)
   ASSERT_STREQ("-2 - 2i", num1.to_string().c_str());
 } 
 
+TEST(ArithTest, TestMod)
+{
+  using namespace kcalc;
+  const char * real = "-1.5";
+  const char * imag = "-1.5i";
+  kcalc::ComplexNumber num1(real);
+  kcalc::ComplexNumber num2(imag); 
+  kcalc::ComplexNumber num3("1");
+  num1 += num2;
+  ASSERT_STREQ("-3/2 - 3i/2", num1.to_string().c_str()); 
+  num1 %= num3;
+  ASSERT_STREQ("1/2 + i/2", num1.to_string().c_str());
+} 
 
+/* TEST(ArithTest, TestMod2) */
+/* { */
+/*   using namespace kcalc; */
+/*   const char * real = "-1.5"; */
+/*   const char * imag = "-1.5i"; */
+/*   kcalc::ComplexNumber num1(real); */
+/*   kcalc::ComplexNumber num2(imag); */ 
+/*   kcalc::ComplexNumber num3("1"); */
+/*   kcalc::ComplexNumber num4("i"); */
+/*   num1 += num2; */
+/*   num3 += num4; */
+/*   ASSERT_STREQ("-3/2 - 3i/2", num1.to_string().c_str()); */ 
+/*   num1 %= num3; */
+/*   ASSERT_STREQ("1/2 + i/2", num1.to_string().c_str()); */
+/* } */ 

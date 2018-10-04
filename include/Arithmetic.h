@@ -95,21 +95,24 @@ public:
     return copy;
   } 
 
-  /* ComplexNumber& operator%=( */
-  /*     const ComplexNumber& other) */
-  /* { */
-  /*   m_real %= other.m_real; */
-  /*   m_imaginary %= other.m_imaginary; */
-  /*   return *this; */
-  /* } */  
+  ComplexNumber& operator%=(
+      const ComplexNumber& other)
+  {
+    ComplexNumber copy(*this);
+    copy /= other;
+    copy.floor();
+    copy *= other;
+    *this -= copy;
+    return *this;
+  }  
 
-  /* ComplexNumber operator%( */
-  /*     const ComplexNumber& other) */
-  /* { */
-  /*   ComplexNumber copy(*this); */
-  /*   copy %= other; */
-  /*   return copy; */
-  /* } */ 
+  ComplexNumber operator%(
+      const ComplexNumber& other)
+  {
+    ComplexNumber copy(*this);
+    copy %= other;
+    return copy;
+  } 
 
   ComplexNumber& inverse() 
   {
