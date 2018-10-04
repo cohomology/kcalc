@@ -95,6 +95,22 @@ public:
     return copy;
   } 
 
+  /* ComplexNumber& operator%=( */
+  /*     const ComplexNumber& other) */
+  /* { */
+  /*   m_real %= other.m_real; */
+  /*   m_imaginary %= other.m_imaginary; */
+  /*   return *this; */
+  /* } */  
+
+  /* ComplexNumber operator%( */
+  /*     const ComplexNumber& other) */
+  /* { */
+  /*   ComplexNumber copy(*this); */
+  /*   copy %= other; */
+  /*   return copy; */
+  /* } */ 
+
   ComplexNumber& inverse() 
   {
     mpq_class divisor = 
@@ -105,6 +121,8 @@ public:
     m_imaginary /= - divisor;
     return *this;
   }
+
+  ComplexNumber& floor();
 
   std::string to_string() const;
   

@@ -95,16 +95,55 @@ std::string ComplexNumber::to_string() const
   if (printReal)
     result.append(m_real.get_str());
   if (printReal && printImaginary)
-    result.append(" + ");
+  {
+    if (m_imaginary > 0)
+      result.append(" + ");
+    else
+      result.append(" - ");
+  }
   if (printImaginary)
   {
-    if (m_imaginary != 1)
-      result.append(m_imaginary.get_str());
-    result.append("i");
+    mpq_class num = printReal ?
+      abs(m_imaginary.get_num()) :
+      m_imaginary.get_num();
+    mpz_class den = m_imaginary.get_den();
+    if (num != 1)
+      result.append(num.get_str());
+    result.append("i"); 
+    if (den != 1)
+    {
+      result.append("/");
+      result.append(den.get_str());
+    }
   }
   if (!printReal && !printImaginary)
     result.append("0");
   return result;
 } 
+
+static void do_floor(mpq_class& number)
+{
+  mpq_ptr num = number.get_mpq_t();
+  assert(num != nullptr);
+  mpz_t floor;
+  mpz_init(floor);
+  mpz_set_q(floor, num);
+  mpq_t floorQ;
+  mpq_init(floorQ);
+  mpq_set_z(floorQ, floor);
+  mpq_class tmp(floorQ); 
+  if (number < 1)
+    tmp -= 1;
+  number.swap(tmp);
+  mpq_clear(floorQ);
+  mpz_clear(floor);
+}
+
+ComplexNumber& ComplexNumber::floor() 
+{
+  do_floor(m_real);
+  do_floor(m_imaginary);
+  return *this;
+}
 
 } /* namespace kcalc */ 

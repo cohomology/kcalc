@@ -108,7 +108,7 @@ TEST(AstTest, Complex2)
   const char * number = "-12.125i";
   kcalc::Number num((std::string_view(number)));
   std::string result = num.to_string();
-  ASSERT_STREQ("-97/8i", result.c_str());
+  ASSERT_STREQ("-97i/8", result.c_str());
 } 
 
 TEST(AstTest, Complex3)
