@@ -22,6 +22,8 @@ enum class ExceptionKind : unsigned int
 {
   ExponentOverflow = ExceptionClass::ArithmeticErrorClass + 0u,
   DivisionByZero = ExceptionClass::ArithmeticErrorClass + 1u, 
+  ModuloComplexNumber = ExceptionClass::ArithmeticErrorClass + 2u,  
+  PowerIllegalExponent =  ExceptionClass::ArithmeticErrorClass + 3u,   
 
   IllegalEndOfInput = ExceptionClass::ParserErrorClass + 0u,
   UnexpectedToken  = ExceptionClass::ParserErrorClass + 1u,
@@ -68,6 +70,61 @@ private:
   const std::string m_exponent;
 };
 
+class ModuloComplexNumberException : public Exception
+{
+public:
+  ModuloComplexNumberException(
+      const char * file,
+      unsigned int line,
+      std::string divident,
+      std::string divisor) :
+    Exception(file, line), m_divident{divident},
+    m_divisor{divisor}
+  { }
+  ExceptionClass exceptionClass() const override
+  { return ArithmeticErrorClass; }
+  ExceptionKind exceptionKind() const override
+  { return ExceptionKind::ModuloComplexNumber; }
+  std::string what() const override;
+  std::string divident() const
+  { return m_divident; }
+  std::string divisor() const
+  { return m_divisor; } 
+private:
+  std::string m_divident;
+  std::string m_divisor;
+}; 
+
+class PowerIllegalExponentException : public Exception
+{
+public:
+  enum ErrorKind
+  {
+    ComplexExponent = 0u,
+    RationalExponent = 1u
+  };
+
+  PowerIllegalExponentException(
+      const char * file,
+      unsigned int line,
+      ErrorKind kind,
+      std::string exponent) :
+    Exception(file, line), m_kind{kind}, m_exponent{exponent}
+  { }
+  ExceptionClass exceptionClass() const override
+  { return ArithmeticErrorClass; }
+  ExceptionKind exceptionKind() const override
+  { return ExceptionKind::PowerIllegalExponent; }
+  std::string what() const override;
+  std::string exponent() const
+  { return m_exponent; }  
+  ErrorKind kind() const
+  { return m_kind; }
+private:
+  ErrorKind m_kind;
+  std::string m_exponent;
+}; 
+
 class DivisionByZeroException : public Exception
 {
 public:
@@ -82,7 +139,7 @@ public:
   { return ExceptionKind::DivisionByZero; }
   std::string what() const override;
 private:
-}; 
+};  
 
 class ParseError : public Exception
 {

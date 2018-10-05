@@ -146,4 +146,49 @@ ComplexNumber& ComplexNumber::floor()
   return *this;
 }
 
+void ComplexNumber::binExp(unsigned long exponent)
+{
+  ComplexNumber copy(*this);
+  m_real = 1;
+  m_imaginary = 0;
+  while (exponent > 0)
+  {
+    if (exponent & 1) 
+      *this *= copy;
+    copy *= copy;
+    exponent >>= 1;
+  }
+}
+
+ComplexNumber& ComplexNumber::operator^=(
+    const ComplexNumber& other)
+{
+  if (other.m_imaginary != 0)
+    throw PowerIllegalExponentException(__FILE__, __LINE__,
+        PowerIllegalExponentException::ComplexExponent, 
+        other.to_string());
+  mpz_class den = other.m_real.get_den();
+  if (den != 1)
+    throw PowerIllegalExponentException(__FILE__, __LINE__,
+        PowerIllegalExponentException::RationalExponent, 
+        other.to_string()); 
+  mpz_class exp = other.m_real.get_num();
+  if (!exp.fits_ulong_p())
+    throw ExponentiationOverflow(__FILE__, __LINE__,
+        other.to_string());  
+  unsigned long lexp = exp.get_ui();
+  if (lexp == 0)
+  {
+    m_real = 1;
+    m_imaginary = 0;
+  }
+  else
+  {
+    if (lexp < 0)
+      inverse();
+    binExp(lexp);
+  }
+  return *this;
+} 
+
 } /* namespace kcalc */ 

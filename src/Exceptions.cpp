@@ -2,33 +2,44 @@
 
 #include <cassert>
 
+#include <boost/format.hpp>
+
 namespace kcalc
 {
 
 std::string ExponentiationOverflow::what() const   
 {
-  std::stringstream stream;
-  stream << "  Arithmetic overflow: Exponent \"" << m_exponent
-    << "\" to large.";
-  return stream.str();
+  return (boost::format("  Arithmetic overflow: Exponent %1% too large.") 
+      % m_exponent).str();
+} 
+
+std::string ModuloComplexNumberException::what() const   
+{
+  return (boost::format("  Arithmetic error: Modulo with complex divisor"
+                        " \"%1% % %2%\" is not yet supported")
+           % m_divident % m_divisor).str();
+} 
+
+std::string PowerIllegalExponentException::what() const   
+{
+  static const char * complexExponent = 
+      "  Arithmetic error: Power with complex exponent \"%1%\% not yet supported.";  
+  static const char * rationalExponent = 
+      "  Arithmetic error: Power with rational exponent \"%1%\% not yet supported.";   
+  return (boost::format(m_kind == ComplexExponent ? complexExponent :
+      rationalExponent) % m_exponent).str();
 } 
 
 std::string DivisionByZeroException::what() const   
 {
-  std::stringstream stream;
-  stream << "  Arithmetic error: Division by zero.";
-  return stream.str();
+  return "  Arithmetic error: Division by zero.";
 } 
 
 std::string IllegalCharacter::what() const   
 {
   assert(m_token);
-  unsigned int line = m_token->line();
-  unsigned int offset = m_token->offset();
-  std::stringstream stream;
-  stream << "  Lexer error: Illegal character: \""
-          << m_token->text() << "\".";
-  return stream.str();
+  return (boost::format("  Lexer error: Illegal character: \""
+                        "%1%\".") % m_token->text()).str();
 } 
 
 std::string IllegalEndOfInput::what() const   

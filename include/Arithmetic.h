@@ -14,6 +14,11 @@ public:
   ComplexNumber(
       const std::string_view& text);
   ComplexNumber(
+      const unsigned long real,
+      const unsigned long imag) :
+    m_real{real}, m_imaginary{imag}
+  { }
+  ComplexNumber(
       const ComplexNumber&) = default;
   ComplexNumber(
       ComplexNumber&&) = default; 
@@ -98,6 +103,9 @@ public:
   ComplexNumber& operator%=(
       const ComplexNumber& other)
   {
+    if (other.m_imaginary != 0)
+      throw ModuloComplexNumberException(__FILE__, __LINE__,
+          to_string(), other.to_string());
     ComplexNumber copy(*this);
     copy /= other;
     copy.floor();
@@ -107,6 +115,17 @@ public:
   }  
 
   ComplexNumber operator%(
+      const ComplexNumber& other)
+  {
+    ComplexNumber copy(*this);
+    copy %= other;
+    return copy;
+  } 
+
+  ComplexNumber& operator^=(
+      const ComplexNumber& other);
+
+  ComplexNumber operator^(
       const ComplexNumber& other)
   {
     ComplexNumber copy(*this);
@@ -126,6 +145,7 @@ public:
   }
 
   ComplexNumber& floor();
+  void binExp(unsigned long exponent);
 
   std::string to_string() const;
   
