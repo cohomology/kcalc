@@ -21,10 +21,10 @@ std::string ArithmeticExpression::to_string() const
   bool leftBracket = !left().isAtomicExpression();
   bool rightBracket = !right().isAtomicExpression();
   if (leftBracket)
-    result.append(" ( ");
+    result.append("( ");
   result.append(left().to_string());
   if (leftBracket)
-    result.append(" ) ");
+    result.append(" )");
   switch(m_operation)
   {
     case Add:
@@ -50,10 +50,10 @@ std::string ArithmeticExpression::to_string() const
       break;
   }
   if (rightBracket)
-    result.append(" ( ");
+    result.append("( ");
   result.append(right().to_string());
   if (rightBracket)
-    result.append(" ) ");
+    result.append(" )");
   return result; 
 }
 
@@ -86,7 +86,7 @@ ComplexNumber ArithmeticExpression::eval() const
 std::string UnaryMinusExpression::to_string() const 
 {
   std::string result;
-  result.append(" - ");
+  result.append("- ");
   result.append(inner().to_string());
   return result; 
 } 

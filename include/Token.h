@@ -32,7 +32,7 @@ inline std::ostream& operator<<(std::ostream& out, TokenKind kind)
 class SourcePosition
 {
 public:
-  constexpr SourcePosition(unsigned short line = 0,
+  constexpr SourcePosition(unsigned short line = 1,
                            unsigned short offset = 0)
     : m_line{ line }, m_offset{ offset }
   { }
