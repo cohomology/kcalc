@@ -191,7 +191,7 @@ ComplexNumber& ComplexNumber::operator^=(
   {
     if (lexp < 0)
       inverse();
-    binExp(lexp);
+    binExp(std::abs(lexp));
   }
   return *this;
 } 
