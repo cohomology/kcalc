@@ -16,16 +16,16 @@ std::string ExponentiationOverflow::what() const
 std::string ModuloComplexNumberException::what() const   
 {
   return (boost::format("  Arithmetic error: Modulo with complex divisor"
-                        " \"%1% % %2%\" is not yet supported")
+                        " \"%1% %% %2%\" is not yet supported")
            % m_divident % m_divisor).str();
 } 
 
 std::string PowerIllegalExponentException::what() const   
 {
   static const char * complexExponent = 
-      "  Arithmetic error: Power with complex exponent \"%1%\% not yet supported.";  
+      "  Arithmetic error: Power with complex exponent \"%1%\" not yet supported.";  
   static const char * rationalExponent = 
-      "  Arithmetic error: Power with rational exponent \"%1%\% not yet supported.";   
+      "  Arithmetic error: Power with rational exponent \"%1%\" not yet supported.";   
   return (boost::format(m_kind == ComplexExponent ? complexExponent :
       rationalExponent) % m_exponent).str();
 } 

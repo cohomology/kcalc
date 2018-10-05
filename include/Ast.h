@@ -38,6 +38,7 @@ class Expression : public AstObject
 public:
   virtual bool isAtomicExpression() const
   { return false; } 
+  virtual ComplexNumber eval() const = 0;
 };
 
 class Assignment : public AstObject
@@ -163,6 +164,8 @@ public:
     return *m_right.get(); 
   }  
 
+  ComplexNumber eval() const; 
+
 private:
   Operation   m_operation;
   std::unique_ptr<Expression> m_left;
@@ -205,6 +208,8 @@ public:
     return *m_inner.get(); 
   } 
 
+  ComplexNumber eval() const;   
+
 private:
   std::unique_ptr<Expression> m_inner;
 }; 
@@ -235,6 +240,12 @@ public:
     const Variable& var =
       static_cast<const Variable&>(other);
     return m_name == var.m_name;
+  }
+
+  ComplexNumber eval() const
+  { 
+    assert(1 == 0);
+    return ComplexNumber(0);
   }
 
   std::string_view name() const
@@ -271,6 +282,9 @@ public:
 
   std::string to_string() const override
   { return m_number.to_string(); }
+
+  ComplexNumber eval() const     
+  { return m_number; }
 
 private:
   ComplexNumber m_number;

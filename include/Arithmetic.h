@@ -14,8 +14,8 @@ public:
   ComplexNumber(
       const std::string_view& text);
   ComplexNumber(
-      const unsigned long real,
-      const unsigned long imag) :
+      const long real,
+      const long imag = 0) :
     m_real{real}, m_imaginary{imag}
   { }
   ComplexNumber(
@@ -129,7 +129,7 @@ public:
       const ComplexNumber& other)
   {
     ComplexNumber copy(*this);
-    copy %= other;
+    copy ^= other;
     return copy;
   } 
 

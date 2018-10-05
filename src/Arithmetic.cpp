@@ -107,8 +107,10 @@ std::string ComplexNumber::to_string() const
       abs(m_imaginary.get_num()) :
       m_imaginary.get_num();
     mpz_class den = m_imaginary.get_den();
-    if (num != 1)
+    if (num != 1 && num != -1)
       result.append(num.get_str());
+    if (num == -1)
+      result.append("-");
     result.append("i"); 
     if (den != 1)
     {
@@ -173,10 +175,10 @@ ComplexNumber& ComplexNumber::operator^=(
         PowerIllegalExponentException::RationalExponent, 
         other.to_string()); 
   mpz_class exp = other.m_real.get_num();
-  if (!exp.fits_ulong_p())
+  if (!exp.fits_slong_p())
     throw ExponentiationOverflow(__FILE__, __LINE__,
         other.to_string());  
-  unsigned long lexp = exp.get_ui();
+  long lexp = exp.get_si();
   if (lexp == 0)
   {
     m_real = 1;
