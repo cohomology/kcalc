@@ -42,6 +42,12 @@ TEST(ParserTest, SimpleErrorTest)
   checkParseError<kcalc::IllegalCharacter>(
       "1+?", kcalc::Token(kcalc::TokenKind::Unknown, 
         kcalc::SourcePosition(1,2), "?"));  
+  checkParseError<kcalc::IllegalEndOfInput>(
+      "( 1 + 2", kcalc::Token(kcalc::TokenKind::Number, 
+        kcalc::SourcePosition(1,6), "2")); 
+  checkParseError<kcalc::UnexpectedToken>(
+      "( 1 + 2 (", kcalc::Token(kcalc::TokenKind::LeftParen, 
+        kcalc::SourcePosition(1,8), "("));  
 }
 
 TEST(ParserTest, PointBeforeLine)
