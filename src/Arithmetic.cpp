@@ -134,7 +134,8 @@ static void do_floor(mpq_class& number)
   mpq_init(floorQ);
   mpq_set_z(floorQ, floor);
   mpq_class tmp(floorQ); 
-  if (number < 0)
+  if (number < 0 && 
+      tmp != number)
     tmp -= 1;
   number.swap(tmp);
   mpq_clear(floorQ);

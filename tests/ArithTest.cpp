@@ -2,57 +2,102 @@
 
 #include "Ast.h"
 #include "Exceptions.h"
+#include "Arithmetic.h"
+
+kcalc::ComplexNumber construct(const char *re, const char *im)
+{
+  kcalc::ComplexNumber num(re != nullptr ? re : "0");
+  if (im != nullptr)
+  {
+    kcalc::ComplexNumber imag(im);  
+    num += imag; 
+  } 
+  return num;
+}
+
+template<typename T, T& (T::*method)()> 
+std::string testUnary(const char * re, const char *im)
+{
+  kcalc::ComplexNumber num = construct(re, im);
+  (num.*method)();
+  return num.to_string().c_str();
+}
+
+template<typename T, T& (T::*method)(const T&)> 
+std::string testBinary(const char * re, const char *im,
+                       const char * re2, const char *im2)
+{
+  kcalc::ComplexNumber a = construct(re, im);
+  kcalc::ComplexNumber b = construct(re2, im2);
+  (a.*method)(b);
+  return a.to_string().c_str();
+} 
+
+#define TEST_FLOOR(re,im,result) \
+  do { EXPECT_STREQ(result, (testUnary<kcalc::ComplexNumber, \
+        &kcalc::ComplexNumber::floor>(re,im)).c_str()); } while(0)
 
 TEST(ArithTest, TestFloor)
 {
-  using namespace kcalc;
-  const char * real = "1.5";
-  const char * imag = "1.5i";
-  kcalc::ComplexNumber num1(real);
-  kcalc::ComplexNumber num2(imag); 
-  num1 += num2;
-  ASSERT_STREQ("3/2 + 3i/2", num1.to_string().c_str()); 
-  num1.floor();
-  ASSERT_STREQ("1 + i", num1.to_string().c_str());
+  TEST_FLOOR("1.5", "1.5i", "1 + i");
+  TEST_FLOOR("-1.5", "-1.5i", "-2 - 2i");
+  TEST_FLOOR("0", "0i", "0");
+  TEST_FLOOR("0", "-0.5i", "-i");
+  TEST_FLOOR("-0.5", "0", "-1");
+  TEST_FLOOR("0.00001", "0", "0");
+  TEST_FLOOR("-2", "0", "-2");
+  TEST_FLOOR("2", "0", "2");   
 } 
 
-TEST(ArithTest, TestFloorNegative)
-{
-  using namespace kcalc;
-  const char * real = "-1.5";
-  const char * imag = "-1.5i";
-  kcalc::ComplexNumber num1(real);
-  kcalc::ComplexNumber num2(imag); 
-  num1 += num2;
-  ASSERT_STREQ("-3/2 - 3i/2", num1.to_string().c_str()); 
-  num1.floor();
-  ASSERT_STREQ("-2 - 2i", num1.to_string().c_str());
-} 
+#define TEST_MOD(re,im,re2,im2,result) \
+  do { EXPECT_STREQ(result, (testBinary<kcalc::ComplexNumber, \
+        &kcalc::ComplexNumber::operator%=>(re,im,re2,im2).c_str())); } while(0)
 
 TEST(ArithTest, TestMod)
 {
-  using namespace kcalc;
-  const char * real = "-1.5";
-  const char * imag = "-1.5i";
-  kcalc::ComplexNumber num1(real);
-  kcalc::ComplexNumber num2(imag); 
-  kcalc::ComplexNumber num3("1");
-  num1 += num2;
-  ASSERT_STREQ("-3/2 - 3i/2", num1.to_string().c_str()); 
-  num1 %= num3;
-  ASSERT_STREQ("1/2 + i/2", num1.to_string().c_str());
+  TEST_MOD("-2", "-2i", "1", "0", "0");
+  TEST_MOD("-2", "-2i", "-1", "0", "0"); 
+  TEST_MOD("2", "2i", "1", "0", "0");  
+  TEST_MOD("2", "2i", "-1", "0", "0");   
+
+  TEST_MOD("-2", "0", "1", "0", "0");
+  TEST_MOD("-2", "0", "-1", "0", "0"); 
+  TEST_MOD("2", "0", "1", "0", "0");  
+  TEST_MOD("2", "0", "-1", "0", "0");    
+
+  TEST_MOD("-2.5", "-2i", "-1.5", "0", "-1 - i/2");
+  TEST_MOD("-3", "-2i", "-2", "0", "-1");
+  TEST_MOD("3", "3i", "-2", "0", "-1 - i");  
+  TEST_MOD("3", "3i", "2", "0", "1 + i");   
+  TEST_MOD("-3", "-3i", "2", "0", "1 + i");  
+}
+
+TEST(ArithTest, TestModException)
+{
+  bool exceptionThrown = false;
+  try
+  {
+    TEST_MOD("-2.5", "-1.5i", "0", "0", "0");
+  }
+  catch(const kcalc::DivisionByZeroException&)
+  {
+    exceptionThrown = true;
+  }
+  ASSERT_TRUE(exceptionThrown);
+}
+
+TEST(ArithTest, TestModImaginary)
+{
+  bool exceptionThrown = false;
+  try
+  {
+    TEST_MOD("-2.5", "-1.5i", "0", "i", "0");
+  }
+  catch(const kcalc::ModuloComplexNumberException& e)
+  {
+    ASSERT_STREQ("i", e.divisor().c_str());
+    exceptionThrown = true;
+  }
+  ASSERT_TRUE(exceptionThrown);
 } 
 
-TEST(ArithTest, TestMod2)
-{
-  using namespace kcalc;
-  const char * real = "-2";
-  const char * imag = "-2i";
-  kcalc::ComplexNumber num1(real);
-  kcalc::ComplexNumber num2(imag); 
-  kcalc::ComplexNumber num3("1.5");
-  num1 += num2;
-  ASSERT_STREQ("-2 - 2i", num1.to_string().c_str()); 
-  num1 %= num3;
-  ASSERT_STREQ("1/2 + i/2", num1.to_string().c_str());
-} 
