@@ -134,7 +134,7 @@ static void do_floor(mpq_class& number)
   mpq_init(floorQ);
   mpq_set_z(floorQ, floor);
   mpq_class tmp(floorQ); 
-  if (number < 1)
+  if (number < 0)
     tmp -= 1;
   number.swap(tmp);
   mpq_clear(floorQ);
@@ -143,8 +143,10 @@ static void do_floor(mpq_class& number)
 
 ComplexNumber& ComplexNumber::floor() 
 {
-  do_floor(m_real);
-  do_floor(m_imaginary);
+  if (m_real != 0)
+    do_floor(m_real);
+  if (m_imaginary != 0)
+    do_floor(m_imaginary);
   return *this;
 }
 

@@ -16,8 +16,8 @@ std::string ExponentiationOverflow::what() const
 std::string ModuloComplexNumberException::what() const   
 {
   return (boost::format("  Arithmetic error: Modulo with complex divisor"
-                        " \"%1% %% %2%\" is not yet supported")
-           % m_divident % m_divisor).str();
+                        " %2%\" is not yet supported.")
+           % m_divisor).str();
 } 
 
 std::string PowerIllegalExponentException::what() const   
