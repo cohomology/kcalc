@@ -29,6 +29,7 @@ add_subdirectory (demo)
 
 if (CMAKE_BUILD_TYPE MATCHES Debug)
   if (COVERAGE MATCHES ON)
+    set (COVERAGE_GCOVR_EXCLUDES '.*/tests/.*' '.*/demo/.*')
     SETUP_TARGET_FOR_COVERAGE_GCOVR_HTML(NAME coverage EXECUTABLE ctest DEPENDENCIES ast_test lexer_test arith_test parser_test)
   endif()
 endif()
