@@ -34,13 +34,16 @@ static void kcalcRepl(
     if (result)
     {
       result->insertIntoSymbolTable(symbolTable);
-      std::unique_ptr<kcalc::Expression> eval =
-        result->eval(symbolTable); 
-      if (eval)
+      if (result->kind() != kcalc::ObjectKind::Assignment)
       {
-        std::cout 
-          << eval->to_string()
-          << std::endl;
+        std::unique_ptr<kcalc::Expression> eval =
+          result->eval(symbolTable); 
+        if (eval)
+        {
+          std::cout 
+            << eval->to_string()
+            << std::endl;
+        }
       }
     }
   }
