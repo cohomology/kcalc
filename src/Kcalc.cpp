@@ -31,9 +31,14 @@ static void kcalcRepl(
       parser.parse();
     if (result)
     {
-      std::cout 
-        << static_cast<kcalc::Expression*>(result.get())->eval().to_string() 
-        << std::endl;
+      std::unique_ptr<kcalc::Expression> eval =
+        result->eval(); 
+      if (eval)
+      {
+        std::cout 
+          << eval->to_string()
+          << std::endl;
+      }
     }
   }
   catch(const kcalc::ParseError& e)

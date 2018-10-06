@@ -57,29 +57,47 @@ std::string ArithmeticExpression::to_string() const
   return result; 
 }
 
-ComplexNumber ArithmeticExpression::eval() const
+std::unique_ptr<Expression> ArithmeticExpression::eval() const
 {
   assert(m_left && m_right); 
-  ComplexNumber left = m_left->eval();
-  ComplexNumber right = m_right->eval();
-  switch(m_operation)
+  std::unique_ptr<Expression> left_ptr = m_left->eval();
+  std::unique_ptr<Expression> right_ptr = m_right->eval();
+  if (left_ptr->kind() == ObjectKind::Number &&
+      right_ptr->kind() == ObjectKind::Number)
   {
-    case Add:
-      return left + right;
-    case Subtract:
-      return left - right;
-    case Multiply:
-      return left * right;
-    case Divide:
-      return left / right;
-    case Power:
-      return left ^ right;
-    case Modulo:
-      return left % right;
-    default:
-      assert(1 == 0);
-      break;
-  } 
+    const Number * left 
+      = static_cast<const Number *>(left_ptr.get());
+    const Number * right 
+      = static_cast<const Number *>(right_ptr.get()); 
+    switch(m_operation)
+    {
+      case Add:
+        return std::make_unique<Number>(
+            left->number() + right->number());
+      case Subtract:
+        return std::make_unique<Number>(
+            left->number() - right->number());
+      case Multiply:
+        return std::make_unique<Number>(
+            left->number() * right->number());
+      case Divide:
+        return std::make_unique<Number>(
+            left->number() / right->number());
+      case Power:
+        return std::make_unique<Number>(
+            left->number() ^ right->number());
+      case Modulo:
+        return std::make_unique<Number>(
+            left->number() % right->number());
+      default:
+        assert(1 == 0);
+        break;
+    } 
+  }
+  else
+    return std::make_unique<ArithmeticExpression>(
+        m_operation, std::move(left_ptr), 
+        std::move(right_ptr));
   throw 0;
 }
 
@@ -91,12 +109,20 @@ std::string UnaryMinusExpression::to_string() const
   return result; 
 } 
 
-ComplexNumber UnaryMinusExpression::eval() const 
+std::unique_ptr<Expression> UnaryMinusExpression::eval() const 
 {
   assert(m_inner);
-  ComplexNumber inner = m_inner->eval();
-  inner *= ComplexNumber(-1, 0);
-  return inner;
+  std::unique_ptr<Expression> inner_ptr = m_inner->eval(); 
+  if (inner_ptr->kind() == ObjectKind::Number)
+  {
+    const Number * inner 
+      = static_cast<const Number *>(inner_ptr.get()); 
+    return std::make_unique<Number>(
+        ComplexNumber(-1,0) * inner->number());
+  }
+  else
+    return std::make_unique<UnaryMinusExpression>(
+        std::move(inner_ptr)); 
 }
 
 } // namespace kcalc 

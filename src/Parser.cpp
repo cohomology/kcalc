@@ -123,6 +123,12 @@ std::unique_ptr<Expression> Parser::atomicExpression()
         expr = std::make_unique<Number>(la->text());
         break;
       }
+      case TokenKind::Identifier:
+      {
+        match(TokenKind::Identifier);
+        expr = std::make_unique<Variable>(la->text());
+        break;
+      }
       default:
         unexpectedToken(*la, {TokenKind::LeftParen, 
           TokenKind::Number});  

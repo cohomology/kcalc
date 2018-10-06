@@ -41,7 +41,7 @@ public:
   }
 
   ComplexNumber operator+(
-      const ComplexNumber& other)
+      const ComplexNumber& other) const
   {
     ComplexNumber copy(*this);
     copy += other;
@@ -57,7 +57,7 @@ public:
   } 
 
   ComplexNumber operator-(
-      const ComplexNumber& other)
+      const ComplexNumber& other) const
   {
     ComplexNumber copy(*this);
     copy -= other;
@@ -77,7 +77,7 @@ public:
   }
 
   ComplexNumber operator*(
-      const ComplexNumber& other)
+      const ComplexNumber& other) const
   {
     ComplexNumber copy(*this);
     copy *= other;
@@ -93,7 +93,7 @@ public:
   }
 
   ComplexNumber operator/(
-      const ComplexNumber& other)
+      const ComplexNumber& other) const
   {
     ComplexNumber copy(*this);
     copy /= other;
@@ -115,7 +115,7 @@ public:
   }  
 
   ComplexNumber operator%(
-      const ComplexNumber& other)
+      const ComplexNumber& other) const
   {
     ComplexNumber copy(*this);
     copy %= other;
@@ -126,7 +126,7 @@ public:
       const ComplexNumber& other);
 
   ComplexNumber operator^(
-      const ComplexNumber& other)
+      const ComplexNumber& other) const
   {
     ComplexNumber copy(*this);
     copy ^= other;
@@ -144,12 +144,13 @@ public:
     return *this;
   }
 
-  ComplexNumber& floor();
-  void binExp(unsigned long exponent);
+  ComplexNumber& floor(); 
 
   std::string to_string() const;
-  
+
 private:
+  void binExp(unsigned long exponent); 
+
   mpq_class m_real;
   mpq_class m_imaginary; 
 };

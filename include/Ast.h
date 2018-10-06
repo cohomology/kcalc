@@ -19,12 +19,16 @@ enum class ObjectKind : unsigned short
   UnaryMinus = 4u
 };
 
+class Expression;
+
 class AstObject
 {
 public:
   virtual std::string to_string() const = 0; 
   virtual ObjectKind kind() const = 0;
   virtual bool equals(const AstObject&) const = 0;
+  virtual std::unique_ptr<AstObject> clone() const = 0;
+  virtual std::unique_ptr<Expression> eval() const = 0; 
   friend std::ostream& operator<<(std::ostream& out, 
       const AstObject& object) 
   {
@@ -38,7 +42,9 @@ class Expression : public AstObject
 public:
   virtual bool isAtomicExpression() const
   { return false; } 
-  virtual ComplexNumber eval() const = 0;
+  virtual std::unique_ptr<Expression> cloneExpression() const = 0; 
+  std::unique_ptr<AstObject> clone() const override 
+  { return cloneExpression(); }
 };
 
 class Assignment : public AstObject
@@ -64,6 +70,20 @@ public:
       static_cast<const Assignment&>(other);
     return left().equals(oAss.left()) &&
       right().equals(oAss.right());
+  }
+
+  std::unique_ptr<AstObject> clone() const override
+  {
+    assert(m_left && m_right);
+    return std::make_unique<Assignment>(
+        std::move(m_left->cloneExpression()),
+        std::move(m_right->cloneExpression()));
+  }
+
+  std::unique_ptr<Expression> eval() const override
+  { 
+    assert(m_left);
+    return m_left->eval(); 
   }
 
   std::string to_string() const override;
@@ -138,6 +158,15 @@ public:
       right().equals(oArith.right());
   }
 
+  std::unique_ptr<Expression> cloneExpression() const override
+  {
+    assert(m_left && m_right);
+    return std::make_unique<ArithmeticExpression>(
+        m_operation,
+        std::move(m_left->cloneExpression()),
+        std::move(m_right->cloneExpression()));
+  } 
+
   std::string to_string() const override; 
 
   const Expression& left() const
@@ -164,7 +193,7 @@ public:
     return *m_right.get(); 
   }  
 
-  ComplexNumber eval() const; 
+  std::unique_ptr<Expression> eval() const; 
 
 private:
   Operation   m_operation;
@@ -196,6 +225,13 @@ public:
 
   std::string to_string() const override; 
 
+  std::unique_ptr<Expression> cloneExpression() const override
+  {
+    assert(m_inner);
+    return std::make_unique<UnaryMinusExpression>(
+        std::move(m_inner->cloneExpression()));
+  } 
+
   const Expression& inner() const
   { 
     assert(m_inner);
@@ -208,7 +244,7 @@ public:
     return *m_inner.get(); 
   } 
 
-  ComplexNumber eval() const;   
+  std::unique_ptr<Expression> eval() const;   
 
 private:
   std::unique_ptr<Expression> m_inner;
@@ -242,11 +278,11 @@ public:
     return m_name == var.m_name;
   }
 
-  ComplexNumber eval() const
-  { 
-    assert(1 == 0);
-    return ComplexNumber(0);
-  }
+  std::unique_ptr<Expression> cloneExpression() const override
+  { return std::make_unique<Variable>(m_name); } 
+
+  std::unique_ptr<Expression> eval() const
+  { return cloneExpression(); }
 
   std::string_view name() const
   { return m_name; }
@@ -260,6 +296,10 @@ class Number : public Expression
 public:
   Number(const std::string_view& text)
     : m_number{text}
+  { }
+
+  Number(const ComplexNumber& number)
+    : m_number{number}
   { }
 
   ObjectKind kind() const override
@@ -280,10 +320,16 @@ public:
     return m_number == num.m_number;
   }
 
+  std::unique_ptr<Expression> cloneExpression() const override
+  { return std::make_unique<Number>(m_number); } 
+
   std::string to_string() const override
   { return m_number.to_string(); }
 
-  ComplexNumber eval() const     
+  std::unique_ptr<Expression> eval() const     
+  { return cloneExpression(); }
+
+  const ComplexNumber& number() const
   { return m_number; }
 
 private:
