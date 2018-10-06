@@ -53,6 +53,7 @@ protected:
   [[noreturn]] void unexpectedToken(const Token& token, 
       const std::vector<TokenKind>& expected); 
   [[noreturn]] void illegalToken(const Token& token); 
+  [[noreturn]] void assignmentToExpression(const Token& token);  
 private:
   IteratorType         m_begin;
   IteratorType         m_end;

@@ -84,6 +84,14 @@ std::string UnexpectedToken::what() const
   return stream.str();
 } 
 
+std::string AssignmentToExpressionException::what() const   
+{
+  assert(m_token);
+  return (boost::format("  Parse error: Assignment to expression starting with \"" 
+                        "%1%\" of type \"%2%\" is not supported.") 
+      % m_token->text() % m_token->kind()).str();
+} 
+
 } /* namespace kcalc */
 
 

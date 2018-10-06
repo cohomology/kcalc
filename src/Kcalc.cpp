@@ -21,6 +21,7 @@ static void renderError(
 }
 
 static void kcalcRepl(
+    kcalc::SymbolTable& symbolTable,
     kcalc::Prompt& prompt,
     const char * input)
 {
@@ -32,8 +33,9 @@ static void kcalcRepl(
       parser.parse();
     if (result)
     {
+      result->insertIntoSymbolTable(symbolTable);
       std::unique_ptr<kcalc::Expression> eval =
-        result->eval(); 
+        result->eval(symbolTable); 
       if (eval)
       {
         std::cout 
@@ -54,7 +56,10 @@ static void kcalcRepl(
 
 int main()
 {
+  using namespace std::placeholders;
+  kcalc::SymbolTable symbolTable;
   kcalc::Repl repl;
-  repl.run(kcalcRepl);
+  repl.run(std::bind(&kcalcRepl, std::ref(symbolTable), 
+        _1, _2));
   return 0;
 } 

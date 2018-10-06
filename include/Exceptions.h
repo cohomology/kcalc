@@ -28,6 +28,7 @@ enum class ExceptionKind : unsigned int
   IllegalEndOfInput = ExceptionClass::ParserErrorClass + 0u,
   UnexpectedToken  = ExceptionClass::ParserErrorClass + 1u,
   IllegalCharacter = ExceptionClass::ParserErrorClass + 2u,  
+  AssignmentToExpression = ExceptionClass::ParserErrorClass + 3u   
 };
 
 class Exception
@@ -189,6 +190,20 @@ public:
 private:
   const std::vector<TokenKind> m_expected; 
 };
+
+class AssignmentToExpressionException : public ParseError
+{
+public:
+  AssignmentToExpressionException(
+      const char * file,
+      unsigned int line,
+      const Token& token) : 
+    ParseError(file, line, token)
+  { } 
+  ExceptionKind exceptionKind() const override
+  { return ExceptionKind::AssignmentToExpression; } 
+  std::string what() const override;  
+};  
 
 class UnexpectedToken : public ParseError
 {

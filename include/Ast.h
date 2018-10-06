@@ -20,6 +20,7 @@ enum class ObjectKind : unsigned short
 };
 
 class Expression;
+class SymbolTable;
 
 class AstObject
 {
@@ -28,7 +29,9 @@ public:
   virtual ObjectKind kind() const = 0;
   virtual bool equals(const AstObject&) const = 0;
   virtual std::unique_ptr<AstObject> clone() const = 0;
-  virtual std::unique_ptr<Expression> eval() const = 0; 
+  virtual std::unique_ptr<Expression> eval(SymbolTable&) const = 0; 
+  virtual void insertIntoSymbolTable(SymbolTable&) const 
+  { }
   friend std::ostream& operator<<(std::ostream& out, 
       const AstObject& object) 
   {
@@ -80,11 +83,13 @@ public:
         std::move(m_right->cloneExpression()));
   }
 
-  std::unique_ptr<Expression> eval() const override
+  std::unique_ptr<Expression> eval(SymbolTable& symbolTable) const override
   { 
     assert(m_left);
-    return m_left->eval(); 
+    return m_left->eval(symbolTable); 
   }
+
+  void insertIntoSymbolTable(SymbolTable&) const override;
 
   std::string to_string() const override;
 
@@ -193,7 +198,7 @@ public:
     return *m_right.get(); 
   }  
 
-  std::unique_ptr<Expression> eval() const; 
+  std::unique_ptr<Expression> eval(SymbolTable&) const; 
 
 private:
   Operation   m_operation;
@@ -244,7 +249,7 @@ public:
     return *m_inner.get(); 
   } 
 
-  std::unique_ptr<Expression> eval() const;   
+  std::unique_ptr<Expression> eval(SymbolTable&) const;   
 
 private:
   std::unique_ptr<Expression> m_inner;
@@ -281,8 +286,7 @@ public:
   std::unique_ptr<Expression> cloneExpression() const override
   { return std::make_unique<Variable>(m_name); } 
 
-  std::unique_ptr<Expression> eval() const
-  { return cloneExpression(); }
+  std::unique_ptr<Expression> eval(SymbolTable&) const;
 
   std::string_view name() const
   { return m_name; }
@@ -326,7 +330,7 @@ public:
   std::string to_string() const override
   { return m_number.to_string(); }
 
-  std::unique_ptr<Expression> eval() const     
+  std::unique_ptr<Expression> eval(SymbolTable&) const     
   { return cloneExpression(); }
 
   const ComplexNumber& number() const

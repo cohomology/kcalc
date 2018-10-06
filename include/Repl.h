@@ -27,7 +27,8 @@ public:
   Repl()
     : m_prompt{}
   { }
-  void run(void (&)(Prompt&, const char *));
+  void run(const std::function<
+      void (Prompt&, const char *)>&);
 private:
   Prompt m_prompt;
 }; 

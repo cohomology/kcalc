@@ -1,10 +1,21 @@
 #include "Ast.h"
 #include "Exceptions.h"
+#include "SymbolTable.h"
 
 #include <cassert>
 
 namespace kcalc
 {
+
+void Assignment::insertIntoSymbolTable(SymbolTable& symbolTable) const 
+{
+  assert(m_left && m_left->kind() == ObjectKind::Variable);
+  assert(m_right);
+  const Variable * var 
+    = static_cast<const Variable *>(m_left.get());
+  symbolTable.insert(std::string(var->name()), 
+      *m_right.get());
+}
 
 std::string Assignment::to_string() const
 {
@@ -57,11 +68,11 @@ std::string ArithmeticExpression::to_string() const
   return result; 
 }
 
-std::unique_ptr<Expression> ArithmeticExpression::eval() const
+std::unique_ptr<Expression> ArithmeticExpression::eval(SymbolTable& symbolTable) const
 {
   assert(m_left && m_right); 
-  std::unique_ptr<Expression> left_ptr = m_left->eval();
-  std::unique_ptr<Expression> right_ptr = m_right->eval();
+  std::unique_ptr<Expression> left_ptr = m_left->eval(symbolTable);
+  std::unique_ptr<Expression> right_ptr = m_right->eval(symbolTable);
   if (left_ptr->kind() == ObjectKind::Number &&
       right_ptr->kind() == ObjectKind::Number)
   {
@@ -109,10 +120,10 @@ std::string UnaryMinusExpression::to_string() const
   return result; 
 } 
 
-std::unique_ptr<Expression> UnaryMinusExpression::eval() const 
+std::unique_ptr<Expression> UnaryMinusExpression::eval(SymbolTable& symbolTable) const 
 {
   assert(m_inner);
-  std::unique_ptr<Expression> inner_ptr = m_inner->eval(); 
+  std::unique_ptr<Expression> inner_ptr = m_inner->eval(symbolTable); 
   if (inner_ptr->kind() == ObjectKind::Number)
   {
     const Number * inner 
@@ -123,6 +134,13 @@ std::unique_ptr<Expression> UnaryMinusExpression::eval() const
   else
     return std::make_unique<UnaryMinusExpression>(
         std::move(inner_ptr)); 
+}
+
+std::unique_ptr<Expression> Variable::eval(SymbolTable& symbolTable) const 
+{
+  std::unique_ptr<Expression> content =
+    symbolTable.retrieve(std::string(this->name()));
+  return content ? content->eval(symbolTable) : cloneExpression(); 
 }
 
 } // namespace kcalc 

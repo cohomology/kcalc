@@ -16,12 +16,18 @@ std::unique_ptr<AstObject> Parser::parse()
 
 std::unique_ptr<AstObject> Parser::assignment() 
 {
+  auto first = LA();
   std::unique_ptr<Expression> left = expression();
   std::unique_ptr<AstObject> assignment; 
   auto la = LA();
   if (la && la->kind() == TokenKind::Equals)
   {
     match(TokenKind::Equals);
+    if (left->kind() != ObjectKind::Variable) 
+    {
+      assert(first);
+      assignmentToExpression(*first);
+    }
     std::unique_ptr<Expression> right = expression(); 
     assignment = std::make_unique<Assignment>(
         std::move(left), std::move(right));
@@ -197,6 +203,12 @@ void Parser::unexpectedToken(const Token& token,
   else
     throw UnexpectedToken(__FILE__, __LINE__,
         token, expected); 
+}
+
+void Parser::assignmentToExpression(const Token& token)   
+{
+  throw AssignmentToExpressionException(__FILE__, __LINE__,
+      token);
 }
 
 } /* namespace kcalc */

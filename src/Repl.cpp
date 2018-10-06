@@ -17,8 +17,8 @@ const std::string& Prompt::get()
   return m_string;
 }  
 
-void Repl::run(
-    void (&callBack)(Prompt&, const char *)) 
+void Repl::run(const std::function<
+    void (Prompt&, const char *)>& callBack)
 {
   char * input;
   while ((input = readline(
