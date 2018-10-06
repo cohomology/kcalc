@@ -154,13 +154,13 @@ std::unique_ptr<Expression> Parser::atomicExpression()
       }
       default:
         unexpectedToken(*la, {TokenKind::LeftParen, 
-          TokenKind::Number});  
+          TokenKind::Number, TokenKind::Identifier});  
         break;
     }
   }
   if (!expr)
     illegalEndOfInput({TokenKind::LeftParen, 
-        TokenKind::Number}); 
+        TokenKind::Number, TokenKind::Identifier}); 
   return expr;
 } 
 
