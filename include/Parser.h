@@ -42,6 +42,7 @@ public:
 protected:
   void match(TokenKind kind);
   std::optional<Token> LA();
+  std::unique_ptr<AstObject>  assignment();  
   std::unique_ptr<Expression> expression(); 
   std::unique_ptr<Expression> multiplicativeExpression(); 
   std::unique_ptr<Expression> unaryMinusExpression(); 

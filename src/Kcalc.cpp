@@ -3,6 +3,7 @@
 #include "Parser.h" 
 #include "Exceptions.h"
 #include "Repl.h"
+#include "SymbolTable.h"
 
 static void renderError(
     const kcalc::ParseError& e,

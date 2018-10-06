@@ -7,11 +7,28 @@ namespace kcalc
 
 std::unique_ptr<AstObject> Parser::parse()
 {
-  std::unique_ptr<AstObject> object = expression();
+  std::unique_ptr<AstObject> object = assignment();
   auto la = LA();
   if (la)
     unexpectedToken(*la, { TokenKind::EndOfInput });
   return object;
+}
+
+std::unique_ptr<AstObject> Parser::assignment() 
+{
+  std::unique_ptr<Expression> left = expression();
+  std::unique_ptr<AstObject> assignment; 
+  auto la = LA();
+  if (la && la->kind() == TokenKind::Equals)
+  {
+    match(TokenKind::Equals);
+    std::unique_ptr<Expression> right = expression(); 
+    assignment = std::make_unique<Assignment>(
+        std::move(left), std::move(right));
+  }
+  else
+    assignment = std::move(left);
+  return assignment; 
 }
 
 std::unique_ptr<Expression> Parser::expression()
