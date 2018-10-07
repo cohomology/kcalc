@@ -51,6 +51,7 @@ public:
   virtual std::unique_ptr<Expression> cloneExpression() const = 0; 
   std::unique_ptr<AstObject> clone() const override 
   { return cloneExpression(); }
+  virtual bool containsVariables() const = 0;
 };
 
 class Assignment : public AstObject
@@ -157,6 +158,18 @@ public:
   Operation operation() const
   { return m_operation; }
 
+  void operation(Operation operation)
+  { m_operation = operation; }
+
+  void invertOperation();
+
+  bool containsVariables() const override 
+  { 
+    assert(m_left && m_right);
+    return m_left->containsVariables() &&
+      m_right->containsVariables();
+  } 
+
   void accept(Visitor& visitor) override
   { 
     assert(m_left && m_right);
@@ -201,6 +214,9 @@ public:
     return *m_left.get(); 
   } 
 
+  void replaceLeft(std::unique_ptr<Expression> left) 
+  { m_left.swap(left); }
+
   const Expression& right() const
   { 
     assert(m_right);
@@ -212,6 +228,9 @@ public:
     assert(m_right);
     return *m_right.get(); 
   }  
+
+  void replaceRight(std::unique_ptr<Expression> right) 
+  { m_right.swap(right); } 
 
   std::unique_ptr<Expression> eval(SymbolTable&) const; 
 
@@ -230,6 +249,12 @@ public:
 
   ObjectKind kind() const override
   { return ObjectKind::UnaryMinus; }
+
+  bool containsVariables() const override 
+  { 
+    assert(m_inner);
+    return m_inner->containsVariables();
+  } 
 
   void accept(Visitor& visitor) override
   { 
@@ -294,6 +319,9 @@ public:
 
   std::string to_string() const override  
   { return m_name; }
+
+  bool containsVariables() const override 
+  { return false; }  
   
   bool equals(const AstObject& other) const override
   { 
@@ -336,6 +364,9 @@ public:
   ObjectKind kind() const override
   { return ObjectKind::Number; }
 
+  bool containsVariables() const override 
+  { return true; } 
+
   bool isAtomicExpression() const override
   { return m_number.isPure(); }
   
@@ -361,6 +392,9 @@ public:
   { return cloneExpression(); }
 
   const ComplexNumber& number() const
+  { return m_number; }
+
+  ComplexNumber& number()
   { return m_number; }
 
 private:

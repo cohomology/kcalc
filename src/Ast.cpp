@@ -58,6 +58,28 @@ std::string ArithmeticExpression::to_string() const
   return result; 
 }
 
+void ArithmeticExpression::invertOperation()
+{
+  switch(m_operation)
+  {
+    case Add:
+      m_operation = Subtract;
+      break;
+    case Subtract:
+      m_operation = Add;
+      break; 
+    case Multiply:
+      m_operation = Divide;
+      break; 
+    case Divide:
+      m_operation = Multiply;
+      break; 
+    default:
+      assert(1 == 0);
+      break;
+  } 
+}
+
 std::unique_ptr<Expression> ArithmeticExpression::eval(SymbolTable& symbolTable) const
 {
   assert(m_left && m_right); 

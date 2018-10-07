@@ -3,6 +3,8 @@
 
 #include "Visitor.h"
 
+#include <memory>
+
 namespace kcalc 
 {
 
@@ -18,8 +20,15 @@ public:
   { }
 
   void visit(Assignment& assignment) override;
+  void visit(ArithmeticExpression& expression) override;
 
 private:
+  std::unique_ptr<Expression> 
+  evaluate(const Expression& expr); 
+
+  void balanceVariablesPlusMinus(
+      ArithmeticExpression& expression);
+
   SymbolTable& m_symbolTable;
 };
 
