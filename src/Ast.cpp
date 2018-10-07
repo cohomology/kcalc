@@ -7,16 +7,6 @@
 namespace kcalc
 {
 
-void Assignment::insertIntoSymbolTable(SymbolTable& symbolTable) const 
-{
-  assert(m_left && m_left->kind() == ObjectKind::Variable);
-  assert(m_right);
-  const Variable * var 
-    = static_cast<const Variable *>(m_left.get());
-  symbolTable.insert(std::string(var->name()), 
-      *m_right.get());
-}
-
 std::string Assignment::to_string() const
 {
   std::string result;

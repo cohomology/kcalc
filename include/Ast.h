@@ -6,6 +6,7 @@
 #include <ostream>
 
 #include "Arithmetic.h"
+#include "Visitor.h"
 
 namespace kcalc 
 {
@@ -25,13 +26,13 @@ class SymbolTable;
 class AstObject
 {
 public:
+  virtual void accept(Visitor& visitor)
+  { }
   virtual std::string to_string() const = 0; 
   virtual ObjectKind kind() const = 0;
   virtual bool equals(const AstObject&) const = 0;
   virtual std::unique_ptr<AstObject> clone() const = 0;
   virtual std::unique_ptr<Expression> eval(SymbolTable&) const = 0; 
-  virtual void insertIntoSymbolTable(SymbolTable&) const 
-  { }
   friend std::ostream& operator<<(std::ostream& out, 
       const AstObject& object) 
   {
@@ -43,6 +44,8 @@ public:
 class Expression : public AstObject
 { 
 public:
+  void accept(Visitor& visitor) override
+  { visitor.accept<AstObject>(*this); }
   virtual bool isAtomicExpression() const
   { return false; } 
   virtual std::unique_ptr<Expression> cloneExpression() const = 0; 
@@ -61,6 +64,13 @@ public:
 
   ObjectKind kind() const override
   { return ObjectKind::Assignment; }
+
+  void accept(Visitor& visitor) override
+  { 
+    assert(m_left && m_right);
+    visitor.accept<AstObject, Assignment>(*this, 
+       *m_left.get(), *m_right.get()); 
+  } 
   
   bool equals(const AstObject& other) const override
   { 
@@ -88,8 +98,6 @@ public:
     assert(m_left);
     return m_left->eval(symbolTable); 
   }
-
-  void insertIntoSymbolTable(SymbolTable&) const override;
 
   std::string to_string() const override;
 
@@ -148,6 +156,13 @@ public:
 
   Operation operation() const
   { return m_operation; }
+
+  void accept(Visitor& visitor) override
+  { 
+    assert(m_left && m_right);
+    visitor.accept<Expression>(*this, *m_left.get(), 
+      *m_right.get()); 
+  }  
   
   bool equals(const AstObject& other) const override
   { 
@@ -216,6 +231,12 @@ public:
   ObjectKind kind() const override
   { return ObjectKind::UnaryMinus; }
 
+  void accept(Visitor& visitor) override
+  { 
+    assert(m_inner);
+    visitor.accept<Expression>(*this, *m_inner.get()); 
+  } 
+
   bool equals(const AstObject& other) const override
   { 
     if (this == &other)
@@ -265,6 +286,9 @@ public:
   ObjectKind kind() const override
   { return ObjectKind::Variable; }
 
+  void accept(Visitor& visitor) override
+  { visitor.accept<Expression>(*this); } 
+
   bool isAtomicExpression() const override
   { return true; }  
 
@@ -305,6 +329,9 @@ public:
   Number(const ComplexNumber& number)
     : m_number{number}
   { }
+
+  void accept(Visitor& visitor) override
+  { visitor.accept<Expression>(*this); }  
 
   ObjectKind kind() const override
   { return ObjectKind::Number; }

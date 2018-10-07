@@ -4,6 +4,7 @@
 #include "Exceptions.h"
 #include "Repl.h"
 #include "SymbolTable.h"
+#include "SemanticAnalyzer.h"
 
 static void renderError(
     const kcalc::ParseError& e,
@@ -22,6 +23,7 @@ static void renderError(
 
 static void kcalcRepl(
     kcalc::SymbolTable& symbolTable,
+    kcalc::SemanticAnalyzer& analyzer,
     kcalc::Prompt& prompt,
     const char * input)
 {
@@ -33,7 +35,7 @@ static void kcalcRepl(
       parser.parse();
     if (result)
     {
-      result->insertIntoSymbolTable(symbolTable);
+      result->accept(analyzer);
       if (result->kind() != kcalc::ObjectKind::Assignment)
       {
         std::unique_ptr<kcalc::Expression> eval =
@@ -61,8 +63,9 @@ int main()
 {
   using namespace std::placeholders;
   kcalc::SymbolTable symbolTable;
+  kcalc::SemanticAnalyzer analyzer(symbolTable);
   kcalc::Repl repl;
   repl.run(std::bind(&kcalcRepl, std::ref(symbolTable), 
-        _1, _2));
+        std::ref(analyzer), _1, _2));
   return 0;
 } 
